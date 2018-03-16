@@ -69,57 +69,123 @@ namespace QtCommon
     {
         Q_ASSERT(pTable);
         QHeaderView* pHeader = pTable->header();
-        if (!pHeader)
-            return;
-
-        pTable->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
-        int columnCount = pTable->header()->count();
-        QVector<int> columnWidth(columnCount);
-
-        QAbstractItemModel* pModel = (QAbstractItemModel*)pTable->model();
-        if (pModel)
+        if (pHeader != nullptr)
         {
-            int margin = 0;
-            QStyle* pStyle = pHeader->style();
-            if (pStyle)
-            {
-                margin = pHeader->style()->pixelMetric(QStyle::PM_HeaderMargin, 0, pHeader);
-            }
+            pTable->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
+            const int columnCount = pTable->header()->count();
+            QVector<int> columnWidth(columnCount);
 
-            int rowCount = pModel->rowCount();
-            int elideWidth = QtUtil::GetTextWidth(pTable->font(), QString(0x2026));
-            QFontMetrics fm(pHeader->font());
-            pHeader->setFixedHeight(fm.height() + (margin * 2));
-
-            for (int column = 0; column < columnCount; column++)
+            QAbstractItemModel* pModel = (QAbstractItemModel*)pTable->model();
+            if (pModel != nullptr)
             {
-                QVariant headerData = pModel->headerData(column, Qt::Horizontal);
-                QString textHeader = headerData.toString().trimmed();
-                columnWidth[column] = QtUtil::GetTextWidth(pHeader->font(), textHeader) + padding + (margin * 2);
-                for (int row = 0; (row < rowCount) && (row < maxRows); row++)
+                int margin = 0;
+                QStyle* pStyle = pHeader->style();
+                if (pStyle != nullptr)
                 {
-                    QString textData = pModel->data(pModel->index(row, column)).toString().trimmed();
-                    int width = QtUtil::GetTextWidth(pTable->font(), textData) + elideWidth;
-                    if (width > columnWidth[column])
+                    margin = pHeader->style()->pixelMetric(QStyle::PM_HeaderMargin, 0, pHeader);
+                }
+
+                const int rowCount = pModel->rowCount();
+                const int elideWidth = QtUtil::GetTextWidth(pTable->font(), QString(0x2026));
+                QFontMetrics fm(pHeader->font());
+                pHeader->setFixedHeight(fm.height() + (margin * 2));
+
+                for (int column = 0; column < columnCount; column++)
+                {
+                    const QVariant headerData = pModel->headerData(column, Qt::Horizontal);
+                    const QString textHeader = headerData.toString().trimmed();
+                    columnWidth[column] = QtUtil::GetTextWidth(pHeader->font(), textHeader) + padding + (margin * 2);
+                    for (int row = 0; (row < rowCount) && (row < maxRows); row++)
                     {
-                        columnWidth[column] = width;
+                        const QString textData = pModel->data(pModel->index(row, column)).toString().trimmed();
+                        int width = QtUtil::GetTextWidth(pTable->font(), textData) + elideWidth;
+                        if (width > columnWidth[column])
+                        {
+                            columnWidth[column] = width;
+                        }
+                    }
+                }
+
+                pHeader->setSectionResizeMode(QHeaderView::Interactive);
+                for (int column = 0; column < columnCount; column++)
+                {
+                    if ((maxWidth == 0) || ((columnWidth[column] + padding) < maxWidth))
+                    {
+                        pTable->setColumnWidth(column, columnWidth[column] + padding);
+                    }
+                    else
+                    {
+                        pTable->setColumnWidth(column, maxWidth);
                     }
                 }
             }
+        }
+    }
 
-            pHeader->setSectionResizeMode(QHeaderView::Interactive);
-            for (int column = 0; column < columnCount; column++)
+    //-----------------------------------------------------------------------------
+    /// Compute the minimum width required to display all columns of the given QTreeView.
+    /// \param pTreeView Pointer to the tree view object.
+    /// \param maxRows Maximum number of rows to sample when calculating column width.
+    /// \param padding Additional pixels added to the calculated width of the longest string.
+    /// \returns The minimum width required to display all columns of the given QTreeView.
+    //-----------------------------------------------------------------------------
+    int QtUtil::ComputeMinimumTableWidth(QTreeView* pTreeView, int maxRows, int padding)
+    {
+        int minimumWidth = 0;
+
+        Q_ASSERT(pTreeView);
+        QHeaderView* pHeader = pTreeView->header();
+        if (pHeader != nullptr)
+        {
+            QHeaderView* pHeaderView = pTreeView->header();
+            if (pHeaderView != nullptr)
             {
-                if ((maxWidth == 0) || ((columnWidth[column] + padding) < maxWidth))
+                const int columnCount = pTreeView->header()->count();
+                QVector<int> columnWidths(columnCount);
+
+                QAbstractItemModel* pModel = (QAbstractItemModel*)pTreeView->model();
+                if (pModel != nullptr)
                 {
-                    pTable->setColumnWidth(column, columnWidth[column] + padding);
-                }
-                else
-                {
-                    pTable->setColumnWidth(column, maxWidth);
+                    int margin = 0;
+                    QStyle* pStyle = pHeader->style();
+                    if (pStyle != nullptr)
+                    {
+                        margin = pHeader->style()->pixelMetric(QStyle::PM_HeaderMargin, 0, pHeader);
+                    }
+
+                    const int rowCount = pModel->rowCount();
+                    const int elideWidth = QtCommon::QtUtil::GetTextWidth(pTreeView->font(), QString(0x2026));
+
+                    for (int column = 0; column < columnCount; column++)
+                    {
+                        QVariant headerData = pModel->headerData(column, Qt::Horizontal);
+                        QString textHeader = headerData.toString().trimmed();
+                        columnWidths[column] = QtCommon::QtUtil::GetTextWidth(pHeader->font(), textHeader) + padding + (margin * 2);
+                        for (int row = 0; (row < rowCount) && (row < maxRows); row++)
+                        {
+                            const QString textData = pModel->data(pModel->index(row, column)).toString().trimmed();
+                            const int width = QtCommon::QtUtil::GetTextWidth(pTreeView->font(), textData) + elideWidth;
+                            if (width > columnWidths[column])
+                            {
+                                columnWidths[column] = width;
+                            }
+                        }
+                    }
+
+                    // Sum the widths of all visible columns.
+                    for (int columnWidth : columnWidths)
+                    {
+                        minimumWidth += columnWidth;
+                    }
                 }
             }
         }
+        else
+        {
+            minimumWidth = QWIDGETSIZE_MAX;
+        }
+
+        return minimumWidth;
     }
 
     //-----------------------------------------------------------------------------
@@ -203,5 +269,38 @@ namespace QtCommon
     {
         QFontMetrics fm(font);
         return fm.width(str);
+    }
+
+    //-----------------------------------------------------------------------------
+    /// Verify that at least two check boxes are checked, not counting the
+    /// first one ("All").
+    /// \param visibilityVector The vetor to look through
+    /// \param firstcolumn The first column index
+    /// \param lastColumn The last column index
+    /// \return The boolean to indicate whether to allow unchecking of this check box
+    //-----------------------------------------------------------------------------
+    bool QtUtil::VerifyOneCheckboxChecked(const std::vector<bool>& visibilityVector, int firstColumn, int lastColumn)
+    {
+        bool result = false;
+        int counter = 0;
+
+        // Step through the vector and verify at least two items are checked.
+        for (int columnIndex = firstColumn; columnIndex < lastColumn; ++columnIndex)
+        {
+            if (visibilityVector[columnIndex])
+            {
+                counter++;
+                if (counter >= 2)
+                {
+                    // Set result to true if counter is greater than or equal to two.
+                    result = true;
+
+                    break;
+                }
+            }
+        }
+
+        // Return the result.
+        return result;
     }
 }

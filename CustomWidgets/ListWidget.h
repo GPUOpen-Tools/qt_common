@@ -8,6 +8,8 @@
 #ifndef _LIST_WIDGET_H_
 #define _LIST_WIDGET_H_
 
+#include <functional>
+
 #include <QListWidget>
 
 class ArrowIconWidget;
@@ -24,6 +26,18 @@ public:
 
     // Reimplement Qt's virtual methods
     virtual void paintEvent(QPaintEvent* pEvent);
+    virtual void keyPressEvent(QKeyEvent* pEvent);
+    virtual void focusInEvent(QFocusEvent* pEvent) override;
+    virtual void focusOutEvent(QFocusEvent* pEvent) override;
+
+    // Static methods
+    static void AddListWidgetCheckboxItem(const QString& text, ListWidget* &pListWidget, std::function<void(bool)> slotFunctionPointer, QWidget* pWidget, const QString& listName, const QString& boxName);
+    static void UpdateAllCheckbox(ListWidget* &pListWidget);
+    static void SetColumnVisibilityCheckboxes(ListWidget* &pListWidget, const std::vector<bool>& columnVisibility);
+
+signals:
+    void FocusInEvent();
+    void FocusOutEvent();
 
 private slots:
     void FocusChanged(QWidget* pOld, QWidget* pNow);

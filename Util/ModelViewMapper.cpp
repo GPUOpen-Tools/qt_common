@@ -47,6 +47,40 @@ ModelViewMapper::~ModelViewMapper()
 }
 
 //-----------------------------------------------------------------------------
+/// Set the data for the given model.
+/// \param id The model id to set data for.
+/// \param data The data to associate with the id.
+//-----------------------------------------------------------------------------
+void ModelViewMapper::SetModelData(int id, const QVariant& data)
+{
+    m_ppControlModel[id]->setData(m_ppControlModel[id]->index(0, 0), data);
+}
+
+//-----------------------------------------------------------------------------
+/// Retrieve the widget id mapped to the given widget.
+/// \param pWidget The widget to retrieve the model id for.
+/// \returns The model Id registered to the given widget.
+//-----------------------------------------------------------------------------
+int ModelViewMapper::GetMappedWidgetId(const QWidget* pWidget) const
+{
+    const QVariant& objectId = pWidget->property(kObjectIdProperty);
+    bool isOk = false;
+    int objectIdInt = objectId.toInt(&isOk);
+    assert(isOk);
+
+    return objectIdInt;
+}
+
+//-----------------------------------------------------------------------------
+/// Get the number of values mapped to this model.
+/// \returns The number of values mapped to this model.
+//-----------------------------------------------------------------------------
+uint32_t ModelViewMapper::GetModelCount() const
+{
+    return m_modelCount;
+}
+
+//-----------------------------------------------------------------------------
 /// Initialize a model corresponding to a IO control property. Allows model/view
 /// to work on any UI component
 /// \param pWidget the UI widget to use.
@@ -73,29 +107,4 @@ void ModelViewMapper::InitializeModel(QWidget* pWidget, uint32_t id, const QStri
     m_ppControlMapper[id]->setModel(m_ppControlModel[id]);
     m_ppControlMapper[id]->addMapping(pWidget, 0, propertyName.toUtf8());
     m_ppControlMapper[id]->toFirst();
-}
-
-//-----------------------------------------------------------------------------
-/// Set the data for the given model.
-/// \param id The model id to set data for.
-/// \param data The data to associate with the id.
-//-----------------------------------------------------------------------------
-void ModelViewMapper::SetModelData(int id, const QVariant& data)
-{
-    m_ppControlModel[id]->setData(m_ppControlModel[id]->index(0, 0), data);
-}
-
-//-----------------------------------------------------------------------------
-/// Retrieve the widget id mapped to the given widget.
-/// \param pWidget The widget to retrieve the model id for.
-/// \returns The model Id registered to the given widget.
-//-----------------------------------------------------------------------------
-int ModelViewMapper::GetMappedWidgetId(const QWidget* pWidget) const
-{
-    const QVariant& objectId = pWidget->property(kObjectIdProperty);
-    bool isOk = false;
-    int objectIdInt = objectId.toInt(&isOk);
-    assert(isOk);
-
-    return objectIdInt;
 }

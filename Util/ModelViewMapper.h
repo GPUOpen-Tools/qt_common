@@ -20,8 +20,9 @@ class ModelViewMapper : public QObject
 public:
     explicit ModelViewMapper(uint32_t modelCount);
     virtual ~ModelViewMapper();
-    void InitializeModel(QWidget* pWidget, uint32_t id, const QString& propertyName);
     int GetMappedWidgetId(const QWidget* pWidget) const;
+    uint32_t GetModelCount() const;
+    void InitializeModel(QWidget* pWidget, uint32_t id, const QString& propertyName);
 
 protected:
     void SetModelData(int id, const QVariant& data);

@@ -23,7 +23,9 @@
 #include <ScaledGridLayoutWrapper.h>
 #include <ScaledMainWindowWrapper.h>
 
+#ifndef __APPLE__
 const static int s_STANDARD_DPI = 96;
+#endif
 const static QString s_STYLESHEET_SCALING_REGEX = "(-?\\d+)px\\b"; // Regex which matches a number followed by "px", such as: 6px, -32px, 200px, etc.
 const static char* s_BLOCK_SCALING_PROPERTY_NAME = "blockScaling";
 
@@ -32,8 +34,13 @@ const static char* s_BLOCK_SCALING_PROPERTY_NAME = "blockScaling";
 //-----------------------------------------------------------------------------
 ScalingManager::ScalingManager()
 {
+#ifdef __APPLE__
+    // MacOSX handles scaling - so force to 1.0
+    m_scaleFactor = 1.0;
+#else
     m_dpi = QApplication::primaryScreen()->logicalDotsPerInch();
     m_scaleFactor = (double)m_dpi / (double)s_STANDARD_DPI;
+#endif
     m_rescaleFactor = 1;
 }
 
@@ -101,7 +108,12 @@ void ScalingManager::Update(qreal dpi)
         {
             m_dpi = dpi;
             double oldScaleFactor = m_scaleFactor;
+#ifdef __APPLE__
+            // MacOSX handles scaling - so force to 1.0
+            m_scaleFactor = 1.0;
+#else
             m_scaleFactor = (double)m_dpi / (double)s_STANDARD_DPI;
+#endif
             m_rescaleFactor = m_scaleFactor / oldScaleFactor;
 
             ApplyScaling();

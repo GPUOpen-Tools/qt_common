@@ -22,12 +22,14 @@ static const int s_PEN_WIDTH = 3;
 /// \param pParent The parent widget
 //-----------------------------------------------------------------------------
 ArrowIconWidget::ArrowIconWidget(QWidget* pParent) :
-    QPushButton(pParent)
+    QPushButton(pParent),
+    m_fontSize(s_BUTTON_PIXEL_FONT_SIZE)
 {
     // Set default values
     m_size = s_BUTTON_BASE_SIZE;
     m_direction = Direction::DownArrow;
     m_color = Qt::GlobalColor::gray;
+    m_fontColor = Qt::GlobalColor::black;
     m_penWidth = s_PEN_WIDTH;
 
     // Create the vertices
@@ -86,9 +88,9 @@ void ArrowIconWidget::paintEvent(QPaintEvent* pEvent)
     painter.restore();
 
     QFont font = this->font();
-    font.setPixelSize(s_BUTTON_PIXEL_FONT_SIZE * scalingFactor);
+    font.setPixelSize(m_fontSize * scalingFactor);
     painter.setFont(font);
-    pen.setColor(Qt::GlobalColor::black);
+    pen.setColor(m_fontColor);
     painter.setPen(pen);
     painter.drawText((m_size + s_TEXT_OFFSET_X) * scalingFactor, (m_size/2 + s_TEXT_OFFSET_Y) * scalingFactor, m_text);
 
@@ -107,6 +109,17 @@ void ArrowIconWidget::SetColor(const QColor& color)
 }
 
 //-----------------------------------------------------------------------------
+/// Set the font color of the widget.
+/// \param color Font color of the widget
+//-----------------------------------------------------------------------------
+void ArrowIconWidget::SetFontColor(const QColor& color)
+{
+    m_fontColor = color;
+
+    update();
+}
+
+//-----------------------------------------------------------------------------
 /// Set the size of the encompassing rectangle.
 /// \param size The size of the encompassing rectangle.
 //-----------------------------------------------------------------------------
@@ -116,6 +129,17 @@ void ArrowIconWidget::SetSize(int size)
 
     // Update the vertices
     CreateVertices();
+
+    update();
+}
+
+//-----------------------------------------------------------------------------
+/// Set the size of the font.
+/// \param size The size of the text font.
+//-----------------------------------------------------------------------------
+void ArrowIconWidget::SetFontSize(int fontSize)
+{
+    m_fontSize = fontSize;
 
     update();
 }
@@ -170,4 +194,20 @@ void ArrowIconWidget::CreateVertices()
     // Vertex 2 is the top right
     m_vertices[2].setX(m_size*.2);
     m_vertices[2].setY(m_size * .6);
+}
+
+void ArrowIconWidget::focusInEvent(QFocusEvent* pEvent)
+{
+    emit FocusInEvent();
+
+    // Pass the event onto the base class.
+    QPushButton::focusInEvent(pEvent);
+}
+
+void ArrowIconWidget::focusOutEvent(QFocusEvent* pEvent)
+{
+    emit FocusOutEvent();
+
+    // Pass the event onto the base class.
+    QPushButton::focusOutEvent(pEvent);
 }
