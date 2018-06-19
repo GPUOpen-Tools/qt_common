@@ -46,13 +46,13 @@ signals:
 
 protected:
     // Qt's paintEvent
-    virtual void paintEvent(QPaintEvent* pEvent);
+    void paintEvent(QPaintEvent* pEvent) Q_DECL_OVERRIDE;
 
     // Re-implement focus in event
-    virtual void focusInEvent(QFocusEvent* pEvent) override;
+    void focusInEvent(QFocusEvent* pEvent) Q_DECL_OVERRIDE;
 
     // Re-implement focus out event
-    virtual void focusOutEvent(QFocusEvent* pEvent) override;
+    void focusOutEvent(QFocusEvent* pEvent) Q_DECL_OVERRIDE;
 
 private:
     void CreateVertices();

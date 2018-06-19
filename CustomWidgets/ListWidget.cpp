@@ -189,6 +189,7 @@ void ListWidget::AddListWidgetCheckboxItem(const QString& text, ListWidget* &pLi
     {
         bool isConnected = connect(pCheckBox, &QCheckBox::clicked, pWidget, slotFunctionPointer);
         assert(isConnected);
+        Q_UNUSED(isConnected);
     }
     else
     {

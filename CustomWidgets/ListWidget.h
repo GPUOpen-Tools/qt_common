@@ -25,10 +25,10 @@ public:
     virtual ~ListWidget();
 
     // Reimplement Qt's virtual methods
-    virtual void paintEvent(QPaintEvent* pEvent);
-    virtual void keyPressEvent(QKeyEvent* pEvent);
-    virtual void focusInEvent(QFocusEvent* pEvent) override;
-    virtual void focusOutEvent(QFocusEvent* pEvent) override;
+    void paintEvent(QPaintEvent* pEvent) Q_DECL_OVERRIDE;
+    void keyPressEvent(QKeyEvent* pEvent) Q_DECL_OVERRIDE;
+    void focusInEvent(QFocusEvent* pEvent) Q_DECL_OVERRIDE;
+    void focusOutEvent(QFocusEvent* pEvent) Q_DECL_OVERRIDE;
 
     // Static methods
     static void AddListWidgetCheckboxItem(const QString& text, ListWidget* &pListWidget, std::function<void(bool)> slotFunctionPointer, QWidget* pWidget, const QString& listName, const QString& boxName);
