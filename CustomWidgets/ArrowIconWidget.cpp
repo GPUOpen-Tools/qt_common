@@ -9,9 +9,11 @@
 #include <ArrowIconWidget.h>
 #include <../Scaling/ScalingManager.h>
 #include <../Util/CommonDefinitions.h>
+#include <../Util/QtUtil.h>
 
 static const int s_TEXT_OFFSET_X = 4;
 static const int s_TEXT_OFFSET_Y = 5;
+static const int s_TEXT_OFFSET_X_HIGHLIGHT = 1;
 static const int s_CENTER_UP_ARROW = 5;
 static const int s_CENTER_DOWN_ARROW = 9;
 static const int s_BUTTON_BASE_SIZE = 18;
@@ -23,7 +25,8 @@ static const int s_PEN_WIDTH = 3;
 //-----------------------------------------------------------------------------
 ArrowIconWidget::ArrowIconWidget(QWidget* pParent) :
     QPushButton(pParent),
-    m_fontSize(s_BUTTON_PIXEL_FONT_SIZE)
+    m_fontSize(s_BUTTON_PIXEL_FONT_SIZE),
+    m_highlightSubString(false)
 {
     // Set default values
     m_size = s_BUTTON_BASE_SIZE;
@@ -92,7 +95,31 @@ void ArrowIconWidget::paintEvent(QPaintEvent* pEvent)
     painter.setFont(font);
     pen.setColor(m_fontColor);
     painter.setPen(pen);
-    painter.drawText((m_size + s_TEXT_OFFSET_X) * scalingFactor, (m_size/2 + s_TEXT_OFFSET_Y) * scalingFactor, m_text);
+
+    // Highlight substring if it is requested.
+    if (m_highlightSubString)
+    {
+        // Go through all highlight locations.
+        for (const auto& stringHighlightData : m_stringHighlightData)
+        {
+            QString current = m_text.mid(0, stringHighlightData.m_startLocation + 1);
+            int initialTextWidth = QtCommon::QtUtil::GetTextWidth(font, current);
+
+            current = m_text.mid(stringHighlightData.m_startLocation,
+                                 stringHighlightData.m_endLocation - stringHighlightData.m_startLocation);
+            if (!current.isNull())
+            {
+                int width = QtCommon::QtUtil::GetTextWidth(font, current);
+                QRect rect = this->rect();
+                rect.setX(rect.x() + m_size + initialTextWidth + s_TEXT_OFFSET_X_HIGHLIGHT);
+                rect.setWidth(width);
+                painter.fillRect(rect, stringHighlightData.m_highlightColor);
+            }
+        }
+    }
+
+    // Draw the text.
+    painter.drawText((m_size + s_TEXT_OFFSET_X) * scalingFactor, (m_size / 2 + s_TEXT_OFFSET_Y) * scalingFactor, m_text);
 
     painter.end();
 }
@@ -177,6 +204,43 @@ void ArrowIconWidget::setText(const QString& text)
     update();
 }
 
+//-----------------------------------------------------------------------------
+/// Get the text for this widget.
+/// \return The text for the button.
+//-----------------------------------------------------------------------------
+QString ArrowIconWidget::GetText()
+{
+    return m_text;
+}
+
+//-----------------------------------------------------------------------------
+/// Set the boolean to indicate highlighting of substring.
+/// \param value The boolean to indicate if highlight requested.
+//-----------------------------------------------------------------------------
+void ArrowIconWidget::SetHighLightSubString(bool value)
+{
+    m_highlightSubString = value;
+}
+
+//-----------------------------------------------------------------------------
+/// Set substring data.
+/// \param startLocation  The start location to highlight substring.
+/// \param endLocation    The end location to highlight substring.
+/// \param highlightColor The color to use to highlight substring.
+//-----------------------------------------------------------------------------
+void ArrowIconWidget::SetHighLightSubStringData(QVector<StringHighlightData> stringHighlightData)
+{
+    m_stringHighlightData = stringHighlightData;
+}
+
+//-----------------------------------------------------------------------------
+/// Clear highlight substring data.
+//-----------------------------------------------------------------------------
+void ArrowIconWidget::ClearHighLightSubStringData()
+{
+    m_stringHighlightData.clear();
+    m_stringHighlightData.squeeze();
+}
 //-----------------------------------------------------------------------------
 /// Create the vertices for the arrow.
 //-----------------------------------------------------------------------------

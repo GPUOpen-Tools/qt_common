@@ -7,11 +7,6 @@ set (QTSCALING_VERSION_MINOR 0)
 # Build Qt .ui MOC files for the library.
 set(CMAKE_AUTOMOC ON)
 
-# specify compile options
-IF(UNIX)
-  add_compile_options(-std=c++11 -D_LINUX -Wall -Wextra)
-ENDIF(UNIX)
-
 # Add all header and source files within the directory to the library.
 file (GLOB CPP_INC
 	"*.h"
@@ -23,11 +18,10 @@ file (GLOB CPP_SRC
 )
 
 # Pick up the source files that are relevant to the platform
-add_library(QtScaling STATIC ${CPP_SRC})
+add_library(${PROJECT_NAME} STATIC ${CPP_SRC})
 
 # Find Qt libraries to resolve dependencies.
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
 
 # Set binary suffix
-set_target_properties(QtScaling PROPERTIES DEBUG_POSTFIX -d)
-target_link_libraries(QtScaling Qt5::Widgets)
+target_link_libraries(${PROJECT_NAME} Qt5::Widgets)

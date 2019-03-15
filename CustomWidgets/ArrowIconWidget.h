@@ -12,6 +12,22 @@
 
 static const int s_NUMBER_OF_VERTICES = 3;
 
+// struct for highlight data
+struct StringHighlightData
+{
+    // The start location for highlighting
+    int m_startLocation;
+
+    // The end location for highlighting
+    int m_endLocation;
+
+    // The highlighting color
+    QColor m_highlightColor;
+
+    // The highlight string
+    std::string m_highlightString;
+};
+
 /// Class definition to draw an arrow widget
 class ArrowIconWidget : public QPushButton
 {
@@ -38,7 +54,11 @@ public:
     void SetDirection(Direction direction);
     void SetPenWidth(int penWidth);
     void SetFontSize(int fontSize);
+    void SetHighLightSubString(bool value);
+    void SetHighLightSubStringData(QVector<StringHighlightData> stringHighlightData);
+    void ClearHighLightSubStringData();
     QColor GetFontColor() const { return m_fontColor; }
+    QString GetText();
 
 signals:
     void FocusInEvent();
@@ -57,14 +77,16 @@ protected:
 private:
     void CreateVertices();
 
-    int                 m_size;                             ///< The size of the encompassing rect
-    QColor              m_color;                            ///< The color of the arrow's lines
-    QColor              m_fontColor;                        ///< The text font color
-    Direction           m_direction;                        ///< The direction of the arrow
-    int                 m_penWidth;                         ///< The width of the pen
-    QString             m_text;                             ///< The text for the widget
-    int                 m_fontSize;                         ///< The size of the text font.
-    QPointF             m_vertices[s_NUMBER_OF_VERTICES];   ///< The vertices of the arrow
+    int                 m_size;                              ///< The size of the encompassing rect
+    QColor              m_color;                             ///< The color of the arrow's lines
+    QColor              m_fontColor;                         ///< The text font color
+    Direction           m_direction;                         ///< The direction of the arrow
+    int                 m_penWidth;                          ///< The width of the pen
+    QString             m_text;                              ///< The text for the widget
+    int                 m_fontSize;                          ///< The size of the text font.
+    QPointF             m_vertices[s_NUMBER_OF_VERTICES];    ///< The vertices of the arrow
+    bool                m_highlightSubString;                ///< The boolean to indicate if highlight requested
+    QVector<StringHighlightData> m_stringHighlightData = {}; ///< The vector to keep track of highlight strings
 };
 
 #endif // _ARROW_ICON_WIDGET_H_

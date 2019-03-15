@@ -365,18 +365,18 @@ bool ScalingManager::IsRegisteredObject(QObject* pObject) const
 //-----------------------------------------------------------------------------
 void ScalingManager::RegisterObject(QObject* pObject, int flags)
 {
+    // Do nothing with a null pointer
+    if (pObject == nullptr)
+    {
+        Q_ASSERT((flags & BREAK_ON_FAILURE) == false);
+        return;
+    }
+
     // Block scaling property used to control which panels get registered
     // @TODO: Achieve this without using dynamic qt properties - probably cleaner to just maintain a list of blocked objects
     if (pObject->property(s_BLOCK_SCALING_PROPERTY_NAME).isValid() &&
         pObject->property(s_BLOCK_SCALING_PROPERTY_NAME).toBool() == true)
     {
-        return;
-    }
-
-    // Do nothing with a null pointer
-    if (pObject == nullptr)
-    {
-        Q_ASSERT((flags & BREAK_ON_FAILURE) == false);
         return;
     }
 

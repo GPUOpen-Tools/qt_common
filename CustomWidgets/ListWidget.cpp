@@ -8,9 +8,10 @@
 #include <cassert>
 
 #include <QApplication>
-#include <QPushButton>
-#include <QKeyEvent>
 #include <QCheckBox>
+#include <QKeyEvent>
+#include <QPushButton>
+#include <QScrollBar>
 
 #include <ListWidget.h>
 #include <ArrowIconWidget.h>
@@ -82,11 +83,30 @@ void ListWidget::paintEvent(QPaintEvent* pEvent)
     font.setPixelSize(s_BUTTON_PIXEL_FONT_SIZE * ScalingManager::Get().GetScaleFactor());
     setStyleSheet(s_LIST_WIDGET_STYLE.arg(font.pixelSize()));
 
+    // If a scrollbar is visible, take the width of it into account.
+    // This is necessary so rows aren't clipped under the scrollbar.
+    int scrollBarWidth = 0;
+    QScrollBar* pVerticalScrollBar = verticalScrollBar();
+    if (pVerticalScrollBar != nullptr)
+    {
+        scrollBarWidth = pVerticalScrollBar->width();
+    }
+
     // Set geometry
-    setGeometry(pos.x(), pos.y(), width + s_CHECK_BOX_WIDTH, height);
+    setGeometry(pos.x(), pos.y(), width + s_CHECK_BOX_WIDTH + scrollBarWidth, height);
 
     // Call the base class implementation
     QListWidget::paintEvent(pEvent);
+}
+
+//-----------------------------------------------------------------------------
+/// Allow the user to set the parent.
+/// \param pParent The parent widget
+//-----------------------------------------------------------------------------
+void ListWidget::SetParent(QWidget* pParent)
+{
+    m_pParent = pParent;
+    setParent(pParent);
 }
 
 //-----------------------------------------------------------------------------
@@ -167,6 +187,38 @@ void ListWidget::SetColumnVisibilityCheckboxes(ListWidget* &pListWidget, const s
     }
 
     ListWidget::UpdateAllCheckbox(pListWidget);
+}
+
+std::vector<bool> ListWidget::GetColumnVisibilityCheckboxes(const ListWidget* pListWidget)
+{
+    std::vector<bool> visibility;
+
+    assert(pListWidget != nullptr);
+    if (pListWidget != nullptr)
+    {
+        const int columnCount = pListWidget->count();
+
+        // Subtract 1 to skip over the "All" option.
+        visibility.resize(columnCount - 1, false);
+
+        // Start from columnIndex = 1, to skip over the "All" option.
+        for (int columnIndex = 1; columnIndex < columnCount; ++columnIndex)
+        {
+            QListWidgetItem* pItem = pListWidget->item(columnIndex);
+            assert(pItem != nullptr);
+            if (pItem != nullptr)
+            {
+                QCheckBox* pCheckBox = qobject_cast<QCheckBox*>(pListWidget->itemWidget(pItem));
+                if (pCheckBox != nullptr)
+                {
+                    bool isVisible = pCheckBox->isChecked();
+                    visibility[columnIndex - 1] = isVisible;
+                }
+            }
+        }
+    }
+
+    return visibility;
 }
 
 void ListWidget::AddListWidgetCheckboxItem(const QString& text, ListWidget* &pListWidget, std::function<void(bool)> slotFunctionPointer, QWidget* pWidget, const QString& listName, const QString& boxName)
