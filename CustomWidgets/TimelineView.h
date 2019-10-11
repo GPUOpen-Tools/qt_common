@@ -58,6 +58,8 @@ public:
     qint64 SelectedStartClk();
     qint64 SelectedEndClk();
     qint64 HoverClk();
+    int    LeftSceneBound();
+    int    RightSceneBound();
     bool RegionSelected();
 
     // Convert clocks to scene coords and vice versa. Can be used to position scene items.

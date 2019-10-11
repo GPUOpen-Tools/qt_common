@@ -51,7 +51,8 @@ TimelineView::TimelineView(QWidget* pParent) :
     m_pScene = new QGraphicsScene();
     setScene(m_pScene);
 
-    m_rulerCfg = {};
+    m_rulerCfg = RulerConfig();
+
     m_rulerCfg.maxTime = 10000;
     m_rulerCfg.height = s_RULER_HEIGHT;
     m_rulerCfg.width = this->width();
@@ -749,6 +750,24 @@ qint64 TimelineView::SelectedEndClk()
 qint64 TimelineView::HoverClk()
 {
     return m_lastHoveredClock;
+}
+
+//-----------------------------------------------------------------------------
+/// Get the left scene bound value
+/// \return left scene bound
+//-----------------------------------------------------------------------------
+int TimelineView::LeftSceneBound()
+{
+    return m_leftSceneBound;
+}
+
+//-----------------------------------------------------------------------------
+/// Get the right scene bound value
+/// \return right scene bound
+//-----------------------------------------------------------------------------
+int TimelineView::RightSceneBound()
+{
+    return m_rightSceneBound;
 }
 
 //-----------------------------------------------------------------------------

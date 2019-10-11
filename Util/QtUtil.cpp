@@ -61,6 +61,31 @@ namespace QtCommon
         }
     }
 
+
+    //-----------------------------------------------------------------------------
+    /// Fit tree columns to their contents
+    /// \param pTreeView The tree view
+    //-----------------------------------------------------------------------------
+    void QtUtil::FitColumnsToContents(QTreeView* pTree)
+    {
+        QHeaderView* pHeader = pTree->header();
+        if (pHeader != nullptr)
+        {
+            pTree->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
+
+            const int columnCount = pTree->header()->count();
+            QAbstractItemModel* pModel = static_cast<QAbstractItemModel*>(pTree->model());
+            if (pModel != nullptr)
+            {
+                pHeader->setSectionResizeMode(QHeaderView::Interactive);
+                for (int column = 0; column < columnCount; column++)
+                {
+                    pTree->resizeColumnToContents(column);
+                }
+            }
+        }
+    }
+
     //-----------------------------------------------------------------------------
     /// Adjust the width of table columns to display longest header label and cell data.
     /// \param pTable Pointer to the table view object.

@@ -83,11 +83,76 @@ void ArrowIconComboBox::ResetSelection()
 }
 
 //-----------------------------------------------------------------------------
-/// Get current row
+/// Get previous row index in list
+/// \pre The combobox must be initialized
+/// \return item list previous row index or current if at beginning
 //-----------------------------------------------------------------------------
-int ArrowIconComboBox::CurrentRow()
+int ArrowIconComboBox::PrevRow() const
 {
+    /// the item list must not be null
+    Q_ASSERT(m_pItemList != nullptr);
+
+    const int currentRow = m_pItemList->currentRow();
+    const int prevRow = currentRow - 1;
+    if (prevRow < 0)
+    {
+        return m_pItemList->currentRow();
+    }
+    else
+    {
+        return prevRow;
+    }
+}
+
+//-----------------------------------------------------------------------------
+/// Get current row index in list
+/// \pre The combobox must be initialized
+/// \return item list current row index
+//-----------------------------------------------------------------------------
+int ArrowIconComboBox::CurrentRow() const
+{
+    /// the item list must not be null
+    Q_ASSERT(m_pItemList != nullptr);
+
     return m_pItemList->currentRow();
+}
+
+//-----------------------------------------------------------------------------
+/// Get next row index in list
+/// \pre The combobox must be initialized
+/// \return item list next row index or current if at end of list
+//-----------------------------------------------------------------------------
+int ArrowIconComboBox::NextRow() const
+{
+    /// the item list must not be null
+    Q_ASSERT(m_pItemList != nullptr);
+
+    const int currentRow = m_pItemList->currentRow();
+    const int nextRow = currentRow + 1;
+    if (nextRow >= m_pItemList->count())
+    {
+        return m_pItemList->currentRow();
+    }
+    else
+    {
+        return nextRow;
+    }
+}
+
+//-----------------------------------------------------------------------------
+/// Get the number of rows
+/// \return item list row count
+//-----------------------------------------------------------------------------
+int ArrowIconComboBox::RowCount() const
+{
+    if (m_pItemList != nullptr)
+    {
+        return m_pItemList->count();
+    }
+    else
+    {
+        return 0;
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -140,6 +205,17 @@ void ArrowIconComboBox::ClearItems()
 
 //-----------------------------------------------------------------------------
 /// Add a new list item.
+/// \param pItem the item to be added to the list.
+//-----------------------------------------------------------------------------
+void ArrowIconComboBox::AddItem(QListWidgetItem* pItem)
+{
+    Q_ASSERT(pItem != nullptr);
+
+    m_pItemList->addItem(pItem);
+}
+
+//-----------------------------------------------------------------------------
+/// Add a new list item.
 /// \param newItem The string to be added to the list.
 //-----------------------------------------------------------------------------
 void ArrowIconComboBox::AddItem(const QString& newItem)
@@ -160,6 +236,21 @@ void ArrowIconComboBox::AddItem(const QString& newItem, const QVariant& userData
     pItem->setData(role, userData);
 
     m_pItemList->addItem(pItem);
+}
+
+//-----------------------------------------------------------------------------
+/// Gets data stored in item at specified index
+/// \param index the item index
+/// \param role Data role defaults to Qt::UserRole.
+//-----------------------------------------------------------------------------
+QVariant ArrowIconComboBox::ItemData(int index, int role)
+{
+    if (index < m_pItemList->count() && index >= 0)
+    {
+        return m_pItemList->item(index)->data(role);
+    }
+
+    return QVariant();
 }
 
 //-----------------------------------------------------------------------------
@@ -217,6 +308,14 @@ bool ArrowIconComboBox::eventFilter(QObject* pObject, QEvent* pEvent)
     }
 
     return false;
+}
+
+//-----------------------------------------------------------------------------
+/// Provide a sizeHint which includes the arrow and the text width.
+//-----------------------------------------------------------------------------
+QSize ArrowIconComboBox::sizeHint() const
+{
+    return ArrowIconWidget::sizeHint();
 }
 
 //-----------------------------------------------------------------------------

@@ -24,6 +24,41 @@ static const QColor s_RULER_BACKGROUND_COLOR = QColor(248, 248, 248);
 static const int s_RULER_PIXEL_FONT_SIZE = 11;
 
 //-----------------------------------------------------------------------------
+/// Static utility function to draw the ruler background. Allows external
+/// implementations (rulered table headers) to draw the correct background
+/// region.
+/// \param pPainter Pointer to QPainter
+/// \param rect The rect encompassing the whole ruler
+//-----------------------------------------------------------------------------
+void RulerWidget::PaintRulerBackground(QPainter* pPainter, const QRectF& rect)
+{
+    pPainter->setPen(s_RULER_EDGE_COLOR);
+    pPainter->setBrush(s_RULER_BACKGROUND_COLOR);
+    pPainter->drawRect(rect);
+}
+
+//-----------------------------------------------------------------------------
+/// Get the start time of the ruler. A different value is needed for ruler
+/// widgets attached to GraphicScene objects and QTreeView headers.
+/// \param minVisibleTime The minimum time visible on the ruler
+/// \param timePeriod The time period between each marker. Will depend on the
+///  zoom level
+/// \param useTimePeriod A flag indicating whether the time period should be
+///  used in the calculation
+//-----------------------------------------------------------------------------
+double RulerWidget::GetStartingTime(double minVisibleTime, uint64_t timePeriod, bool useTimePeriod)
+{
+    if (useTimePeriod == false)
+    {
+        return minVisibleTime;
+    }
+    else
+    {
+        return (minVisibleTime - timePeriod) < 0 ? 0 : (minVisibleTime - timePeriod);
+    }
+}
+
+//-----------------------------------------------------------------------------
 /// Static utility function which holds ruler paint logic.
 /// \param pPainter Pointer to QPainter
 /// \param rect The rect encompassing the whole ruler
@@ -34,11 +69,8 @@ static const int s_RULER_PIXEL_FONT_SIZE = 11;
 /// \param timeToClockRatio The time to clock ratio
 /// \param unitType Working with clk, ns, us, or ms
 //-----------------------------------------------------------------------------
-void RulerWidget::PaintRuler(QPainter* pPainter, const QRectF& rect, uint64_t maxTime, uint64_t minVisibleClk, uint64_t maxVisibleClk, double scaleFactor, double timeToClockRatio, int unitType)
+void RulerWidget::PaintRuler(QPainter* pPainter, const QRectF& rect, uint64_t maxTime, uint64_t minVisibleClk, uint64_t maxVisibleClk, double scaleFactor, double timeToClockRatio, int unitType, bool useTimePeriod)
 {
-    pPainter->setPen(s_RULER_EDGE_COLOR);
-    pPainter->setBrush(s_RULER_BACKGROUND_COLOR);
-    pPainter->drawRect(rect);
     pPainter->save();
 
     QFont font;
@@ -104,7 +136,7 @@ void RulerWidget::PaintRuler(QPainter* pPainter, const QRectF& rect, uint64_t ma
     scaleInc /= ((double)markersPerSection);
 
     // quick calculation to start the ruler at the start of the draw region
-    const double startingTime = (minVisibleTime - timePeriod) < 0 ? 0 : (minVisibleTime - timePeriod);
+    const double startingTime = GetStartingTime(minVisibleTime, timePeriod, useTimePeriod);
     count = startingTime / (scaleInc * scaleFactor);
     clockLabel = scaleInc * scaleFactor * count;
 
@@ -234,6 +266,7 @@ void RulerWidget::paint(QPainter* pPainter, const QStyleOptionGraphicsItem *pOpt
     // only draw the ruler if there's a time difference, otherwise there's nothing to show
     if (m_maxVisibleClk > m_minVisibleClk)
     {
+        PaintRulerBackground(pPainter, boundingRect());
         PaintRuler(pPainter, boundingRect(), m_config.maxTime, m_minVisibleClk, m_maxVisibleClk, m_config.scaleFactor, m_config.timeToClockRatio, m_config.unitType);
     }
 }

@@ -13,6 +13,7 @@
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QSignalMapper>
+#include <QDir>
 
 #include <time.h>
 
@@ -58,13 +59,13 @@ RecentTraceMiniWidget::~RecentTraceMiniWidget()
 //-----------------------------------------------------------------------------
 void RecentTraceMiniWidget::SetFile(const RecentFileData& file)
 {
-    // Get file parameters
-    QString path = file.path;
-
+    // Get file parameters. Convert file from its native separators
+    QString path = QDir::fromNativeSeparators(file.path);
     QString fileName = path.mid(path.lastIndexOf("/") + 1, path.length());
 
-    // Set label text
+    // Set label text as just the filename and tooltip as full path
     m_pPathButton->setText(fileName);
+    m_pPathButton->setToolTip(path);
 
     // Connect path label clicked() signal to this widgets clicked(QString) signal
     m_pSignalMapper->setMapping(m_pPathButton, path);

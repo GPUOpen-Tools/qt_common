@@ -28,12 +28,11 @@ static const int gs_LEGENDS_BASE_HEIGHT = 15;
 ColoredLegendScene::ColoredLegendScene()
 {
     m_pScene = nullptr;
+    m_initialFontSize = m_font.pixelSize();
 }
 
 //-----------------------------------------------------------------------------
-/// Explicit constructor
-/// \param pParentView The view displaying this widget
-/// \param fontPixelSize The pixel size of the font
+/// Destructor
 //-----------------------------------------------------------------------------
 ColoredLegendScene::~ColoredLegendScene()
 {
@@ -51,7 +50,7 @@ void ColoredLegendScene::AddColorLegendItem(const QColor& color, const QString& 
     {
         m_legendMode = LEGEND_MODE_COLOR;
 
-        ColorLegendItem legendItem = {};
+        ColorLegendItem legendItem = ColorLegendItem();
         legendItem.pRectItem = new QGraphicsRectItem();
         legendItem.textInfo.pTextItem = new QGraphicsTextItem(desc);
         legendItem.textInfo.textWidth = QtCommon::QtUtil::GetTextWidth(m_font, desc);
@@ -82,7 +81,7 @@ void ColoredLegendScene::AddTextLegendItem(const QString& str)
     {
         m_legendMode = LEGEND_MODE_TEXT;
 
-        TextLegendItem legendItem = {};
+        TextLegendItem legendItem = TextLegendItem();
         legendItem.pTextItem = new QGraphicsTextItem(str);
         legendItem.textWidth = QtCommon::QtUtil::GetTextWidth(m_font, str);
 
@@ -145,11 +144,13 @@ void ColoredLegendScene::Update()
 {
     if (m_pScene != nullptr)
     {
+        const double scaleFactor = ScalingManager::Get().GetScaleFactor();
+
         const int yPosTop = (m_height / 2) * -1;
 
         m_pScene->setSceneRect((m_width / 2) * -1, yPosTop, m_width, m_height);
 
-        const double scaleFactor = ScalingManager::Get().GetScaleFactor();
+        m_font.setPixelSize(m_initialFontSize * scaleFactor);
 
         int xPos = m_pScene->sceneRect().x() + (m_width % 2 == 0 ? 0 : 1);
 
@@ -160,9 +161,12 @@ void ColoredLegendScene::Update()
                 const ColorLegendItem& item = m_colorLegends[i];
 
                 item.pRectItem->setPos(xPos, yPosTop);
+                item.pRectItem->setRect(0, 0, gs_LEGENDS_BASE_HEIGHT * scaleFactor, gs_LEGENDS_BASE_HEIGHT * scaleFactor);
                 item.textInfo.pTextItem->setPos(xPos + (gs_LEGENDS_BASE_HEIGHT * scaleFactor), yPosTop - (s_TEXT_SQUARE_OFFSET_Y * scaleFactor));
+                item.textInfo.pTextItem->setFont(m_font);
+                int textWidth = QtCommon::QtUtil::GetTextWidth(m_font, item.textInfo.pTextItem->toPlainText());
 
-                xPos += (gs_LEGENDS_BASE_HEIGHT * scaleFactor) + item.textInfo.textWidth + (s_TEXT_SQUARE_OFFSET_X * scaleFactor);
+                xPos += (gs_LEGENDS_BASE_HEIGHT * scaleFactor) + textWidth + (s_TEXT_SQUARE_OFFSET_X * scaleFactor);
             }
         }
         else if (m_legendMode == LEGEND_MODE_TEXT)
@@ -170,8 +174,10 @@ void ColoredLegendScene::Update()
             for (int i = 0; i < m_textLegends.size(); i++)
             {
                 m_textLegends[i].pTextItem->setPos(xPos, yPosTop);
+                m_textLegends[i].pTextItem->setFont(m_font);
+                int textWidth = QtCommon::QtUtil::GetTextWidth(m_font, m_textLegends[i].pTextItem->toPlainText());
 
-                xPos += m_textLegends[i].textWidth + s_TEXT_SQUARE_OFFSET_X;
+                xPos += textWidth + s_TEXT_SQUARE_OFFSET_X;
             }
         }
     }

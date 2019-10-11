@@ -59,6 +59,8 @@ public:
     void ClearHighLightSubStringData();
     QColor GetFontColor() const { return m_fontColor; }
     QString GetText();
+    void SetBorderColor(const QColor& color);
+    void SetShowBorder(bool value);
 
 signals:
     void FocusInEvent();
@@ -74,11 +76,16 @@ protected:
     // Re-implement focus out event
     void focusOutEvent(QFocusEvent* pEvent) Q_DECL_OVERRIDE;
 
+    // Re-implement sizeHint
+    QSize sizeHint() const Q_DECL_OVERRIDE;
+
 private:
     void CreateVertices();
 
     int                 m_size;                              ///< The size of the encompassing rect
     QColor              m_color;                             ///< The color of the arrow's lines
+    QColor              m_borderColor;                       ///< The color of the widget border, if border requested
+    bool                m_showBorder;                        ///< The boolean to indicate if border requested
     QColor              m_fontColor;                         ///< The text font color
     Direction           m_direction;                         ///< The direction of the arrow
     int                 m_penWidth;                          ///< The width of the pen

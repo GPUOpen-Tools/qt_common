@@ -8,11 +8,7 @@
 #ifndef _COMMON_DEFINITIONS_H_
 #define _COMMON_DEFINITIONS_H_
 
-#ifdef __RGA
-static const int s_BUTTON_PIXEL_FONT_SIZE = 11;
-#else
 static const int s_BUTTON_PIXEL_FONT_SIZE = 13;
-#endif
 static const int s_CHECK_BOX_WIDTH = 10;
 static const int s_RULER_HEIGHT = 50;
 

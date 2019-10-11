@@ -14,6 +14,15 @@ class QColor;
 
 struct RulerConfig
 {
+    RulerConfig() :
+        height(0),
+        width(0),
+        maxTime(0),
+        scaleFactor(0.0),
+        timeToClockRatio(0),
+        unitType(0)
+    {}
+
     int       height;              ///< Height of the ruler widget
     int       width;               ///< Width of the ruler widget
     uint64_t  maxTime;             ///< Maximum time value of the trace
@@ -26,7 +35,8 @@ struct RulerConfig
 class RulerWidget : public QGraphicsItem
 {
 public:
-    static void PaintRuler(QPainter* pPainter, const QRectF& rect, uint64_t maxTime, uint64_t minVisibleClk, uint64_t maxVisibleClk, double scaleFactor, double timeToClockRatio, int unitType);
+    static void PaintRuler(QPainter* pPainter, const QRectF& rect, uint64_t maxTime, uint64_t minVisibleClk, uint64_t maxVisibleClk, double scaleFactor, double timeToClockRatio, int unitType, bool useTimePeriod = true);
+    static void PaintRulerBackground(QPainter* pPainter, const QRectF& rect);
 
     RulerWidget(const RulerConfig& config);
 	virtual ~RulerWidget() {}
@@ -40,6 +50,8 @@ public:
     void UpdateVisibleBounds(uint64_t min, uint64_t max);
 
 private:
+    static double GetStartingTime(double minVisibleTime, uint64_t timePeriod, bool useTimePeriod);
+
     RulerConfig     m_config;           ///< Ruler config/setup
     uint64_t        m_minVisibleClk;    ///< Track the left-most visible clock
     uint64_t        m_maxVisibleClk;    ///< Track the right-most visible clock

@@ -13,7 +13,6 @@
 
 static const int s_TEXT_OFFSET_X = 4;
 static const int s_TEXT_OFFSET_Y = 5;
-static const int s_TEXT_OFFSET_X_HIGHLIGHT = 1;
 static const int s_CENTER_UP_ARROW = 5;
 static const int s_CENTER_DOWN_ARROW = 9;
 static const int s_BUTTON_BASE_SIZE = 18;
@@ -25,6 +24,7 @@ static const int s_PEN_WIDTH = 3;
 //-----------------------------------------------------------------------------
 ArrowIconWidget::ArrowIconWidget(QWidget* pParent) :
     QPushButton(pParent),
+    m_showBorder(false),
     m_fontSize(s_BUTTON_PIXEL_FONT_SIZE),
     m_highlightSubString(false)
 {
@@ -33,6 +33,7 @@ ArrowIconWidget::ArrowIconWidget(QWidget* pParent) :
     m_direction = Direction::DownArrow;
     m_color = Qt::GlobalColor::gray;
     m_fontColor = Qt::GlobalColor::black;
+    m_borderColor = Qt::GlobalColor::black;
     m_penWidth = s_PEN_WIDTH;
 
     // Create the vertices
@@ -111,7 +112,7 @@ void ArrowIconWidget::paintEvent(QPaintEvent* pEvent)
             {
                 int width = QtCommon::QtUtil::GetTextWidth(font, current);
                 QRect rect = this->rect();
-                rect.setX(rect.x() + m_size + initialTextWidth + s_TEXT_OFFSET_X_HIGHLIGHT);
+                rect.setX(rect.x() + m_size + s_TEXT_OFFSET_X + initialTextWidth);
                 rect.setWidth(width);
                 painter.fillRect(rect, stringHighlightData.m_highlightColor);
             }
@@ -121,7 +122,35 @@ void ArrowIconWidget::paintEvent(QPaintEvent* pEvent)
     // Draw the text.
     painter.drawText((m_size + s_TEXT_OFFSET_X) * scalingFactor, (m_size / 2 + s_TEXT_OFFSET_Y) * scalingFactor, m_text);
 
+    // Draw the borders of the widget on focus or mouse hover,
+    // if it is requested.
+    if (m_showBorder && (hasFocus() || underMouse()))
+    {
+        pen.setColor(m_borderColor);
+        pen.setWidth(1 * scalingFactor);
+        painter.setPen(pen);
+        painter.drawRect(this->rect());
+    }
+
     painter.end();
+}
+
+//-----------------------------------------------------------------------------
+/// Set the color of the widget border.
+/// \param color Color of the widget border
+//-----------------------------------------------------------------------------
+void ArrowIconWidget::SetBorderColor(const QColor& color)
+{
+    m_borderColor = color;
+}
+
+//-----------------------------------------------------------------------------
+/// Set the boolean to indicate if the border should be drawn.
+/// \param value The boolean to indicate if the border should be drawn
+//-----------------------------------------------------------------------------
+void ArrowIconWidget::SetShowBorder(bool value)
+{
+    m_showBorder = value;
 }
 
 //-----------------------------------------------------------------------------
@@ -157,6 +186,7 @@ void ArrowIconWidget::SetSize(int size)
     // Update the vertices
     CreateVertices();
 
+    updateGeometry();
     update();
 }
 
@@ -168,6 +198,7 @@ void ArrowIconWidget::SetFontSize(int fontSize)
 {
     m_fontSize = fontSize;
 
+    updateGeometry();
     update();
 }
 
@@ -201,6 +232,7 @@ void ArrowIconWidget::setText(const QString& text)
 {
     m_text = text;
 
+    updateGeometry();
     update();
 }
 
@@ -260,6 +292,10 @@ void ArrowIconWidget::CreateVertices()
     m_vertices[2].setY(m_size * .6);
 }
 
+//-----------------------------------------------------------------------------
+/// Called when the ArrowIconWidget gets keyboard focus.
+/// \param pEvent A QFocusEvent to inform how focus was obtained.
+//-----------------------------------------------------------------------------
 void ArrowIconWidget::focusInEvent(QFocusEvent* pEvent)
 {
     emit FocusInEvent();
@@ -268,10 +304,40 @@ void ArrowIconWidget::focusInEvent(QFocusEvent* pEvent)
     QPushButton::focusInEvent(pEvent);
 }
 
+//-----------------------------------------------------------------------------
+/// Called when the ArrowIconWidget loses keyboard focus.
+/// \param pEvent A QFocusEvent to inform why focus was lost.
+//-----------------------------------------------------------------------------
 void ArrowIconWidget::focusOutEvent(QFocusEvent* pEvent)
 {
     emit FocusOutEvent();
 
     // Pass the event onto the base class.
     QPushButton::focusOutEvent(pEvent);
+}
+
+//-----------------------------------------------------------------------------
+/// Provides a recommend size for the widget based on its contents.
+/// \return A QSize large enough to fit the arrow and text of this widget.
+//-----------------------------------------------------------------------------
+QSize ArrowIconWidget::sizeHint() const
+{
+    QSize size = QPushButton::sizeHint();
+
+    // Get the scaling factor
+    const double scalingFactor = ScalingManager::Get().GetScaleFactor();
+
+    // Get font metric
+    QFont font = this->font();
+    font.setPixelSize(m_fontSize * scalingFactor);
+    QFontMetrics fm(font);
+
+    // Height is either: the scaled size of the arrow, or the height of the text, whichever is greater.
+    size.setHeight(std::max<int>(m_size*scalingFactor, fm.height()));
+
+    // Width is the width of the scaled arrow + scaled offset + length of text
+    // + (another scaled text offset for after the API PSO hash text).
+    size.setWidth(m_size*scalingFactor + 2.0 * s_TEXT_OFFSET_X * scalingFactor + fm.width(m_text));
+
+    return size;
 }

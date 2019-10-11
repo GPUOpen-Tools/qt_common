@@ -27,6 +27,7 @@ namespace QtCommon
         void ApplyStandardTableStyle(QTreeView* pView);
         void AutoAdjustTableColumns(QTreeView* pTable, int maxRows = 32, int padding = 0, int maxWidth = 0);
         void AutoAdjustTableColumns(QTableView* pTable, int maxRows = 32, int padding = 0, int maxWidth = 0);
+        void FitColumnsToContents(QTreeView* pTree);
         int ComputeMinimumTableWidth(QTreeView* pTable, int maxRows = 32, int padding = 0);
         void GetFilesizeAcronymFromByteCount(quint64 byteCount, QString& sizeString, bool useRound = false);
         int GetListWidgetHeight(ListWidget* pListWidget);

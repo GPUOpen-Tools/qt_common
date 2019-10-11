@@ -17,12 +17,24 @@ class QGraphicsView;
 
 struct TextLegendItem
 {
+    TextLegendItem() :
+        pTextItem(nullptr),
+        textWidth(0)
+    {
+    }
+
     QGraphicsTextItem* pTextItem;
     int                textWidth;
 };
 
 struct ColorLegendItem
 {
+    ColorLegendItem() :
+        pRectItem(nullptr),
+        textInfo(TextLegendItem())
+    {
+    }
+
     QGraphicsRectItem* pRectItem;
     TextLegendItem     textInfo;
 };
@@ -57,6 +69,7 @@ protected:
     int                 m_height;               ///< Scene height
     LegendMode          m_legendMode;           ///< Rendering either blocks with text, or just text
     QFont               m_font;                 ///< The font used to render the text
+    int                 m_initialFontSize;      ///< Initial font pixel size
 
     QVector<ColorLegendItem>  m_colorLegends;   ///< Block to text legend pairings
     QVector<TextLegendItem>   m_textLegends;    ///< Plain text legends
