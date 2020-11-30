@@ -14,9 +14,11 @@
 
 class QFont;
 class QTreeView;
+class QTableView;
 class QWidget;
 class ArrowIconWidget;
 class ListWidget;
+class QPainter;
 
 namespace QtCommon
 {
@@ -24,12 +26,17 @@ namespace QtCommon
     {
         void ApplyStandardTableStyle(QTreeView* pView);
         void AutoAdjustTableColumns(QTreeView* pTable, int maxRows = 32, int padding = 0, int maxWidth = 0);
+        void AutoAdjustTableColumns(QTableView* pTable, int maxRows = 32, int padding = 0, int maxWidth = 0);
+        void FitColumnsToContents(QTreeView* pTree);
         int ComputeMinimumTableWidth(QTreeView* pTable, int maxRows = 32, int padding = 0);
         void GetFilesizeAcronymFromByteCount(quint64 byteCount, QString& sizeString, bool useRound = false);
         int GetListWidgetHeight(ListWidget* pListWidget);
         int GetListWidgetWidth(ListWidget* pListWidget);
         int GetTextWidth(const QFont& font, const QString& str);
+        int GetPainterTextWidth(QPainter* pPainter, const QString& str);
         bool VerifyOneCheckboxChecked(const std::vector<bool>& visibilityVector, int firstcolumn, int lasColumn);
+        QString ClockToTimeUnit(double clk, int unitType);
+        QString HashToStr(quint64 val);
     }
 }
 

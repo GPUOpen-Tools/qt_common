@@ -23,6 +23,7 @@ class ListWidget : public QListWidget
 public:
     explicit ListWidget(QWidget* pParent, ArrowIconWidget* pButton, bool hide);
     virtual ~ListWidget();
+    void SetParent(QWidget* pParent);
 
     // Reimplement Qt's virtual methods
     void paintEvent(QPaintEvent* pEvent) Q_DECL_OVERRIDE;
@@ -34,6 +35,7 @@ public:
     static void AddListWidgetCheckboxItem(const QString& text, ListWidget* &pListWidget, std::function<void(bool)> slotFunctionPointer, QWidget* pWidget, const QString& listName, const QString& boxName);
     static void UpdateAllCheckbox(ListWidget* &pListWidget);
     static void SetColumnVisibilityCheckboxes(ListWidget* &pListWidget, const std::vector<bool>& columnVisibility);
+    static std::vector<bool> GetColumnVisibilityCheckboxes(const ListWidget* pListWidget);
 
 signals:
     void FocusInEvent();
@@ -42,8 +44,10 @@ signals:
 private slots:
     void FocusChanged(QWidget* pOld, QWidget* pNow);
 
-private:
+protected:
     ArrowIconWidget*    m_pButton;      ///< The push button associated with this list box.
+
+private:
     bool                m_hide;         ///< The hide flag to hide the widget on focusChanged event.
     QWidget*            m_pParent;      ///< The parent object.
 };
