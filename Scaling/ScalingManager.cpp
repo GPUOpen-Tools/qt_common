@@ -78,7 +78,10 @@ void ScalingManager::Initialize(QMainWindow* pMainWindow)
     }
 
     // Screen changed and added signals/slots
-    connect(pWinHandle, &QWindow::screenChanged, this, &ScalingManager::OnScreenChanged);
+    if (pWinHandle != nullptr)
+    {
+        connect(pWinHandle, &QWindow::screenChanged, this, &ScalingManager::OnScreenChanged);
+    }
     connect(qApp, &QApplication::screenAdded, this, &ScalingManager::OnScreenAdded);
 
     // DPI update for current screen
