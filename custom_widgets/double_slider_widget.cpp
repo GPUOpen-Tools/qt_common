@@ -159,17 +159,17 @@ void DoubleSliderWidget::SetupPainter(QPainter* painter, Qt::Orientation orienta
 {
     QColor          highlight = palette().color(QPalette::Highlight);
     QLinearGradient gradient(start_x, start_y, end_x, end_y);
-    gradient.setColorAt(0, highlight.dark(120));
-    gradient.setColorAt(1, highlight.light(108));
+    gradient.setColorAt(0, highlight.darker(120));
+    gradient.setColorAt(1, highlight.lighter(108));
     painter->setBrush(gradient);
 
     if (orientation == Qt::Horizontal)
     {
-        painter->setPen(QPen(highlight.dark(130), 0));
+        painter->setPen(QPen(highlight.darker(130), 0));
     }
     else
     {
-        painter->setPen(QPen(highlight.dark(150), 0));
+        painter->setPen(QPen(highlight.darker(150), 0));
     }
 }
 
@@ -193,7 +193,7 @@ void DoubleSliderWidget::DrawSpan(QStylePainter* painter, const QRect& span_area
     groove_rect.setHeight(1);
 
     // pen & brush
-    painter->setPen(QPen(double_slider->palette().color(QPalette::Dark).light(), 0));
+    painter->setPen(QPen(double_slider->palette().color(QPalette::Dark).lighter(), 0));
 
     if (option.orientation == Qt::Horizontal)
     {

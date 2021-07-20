@@ -277,7 +277,7 @@ namespace QtCommon
 
     int QtUtils::GetTextWidth(const QFont& font, const QString& str)
     {
-        return ScalingManager::Get().ScaledFontMetrics(font).width(str);
+        return ScalingManager::Get().ScaledFontMetrics(font).boundingRect(str).width();
     }
 
     int QtUtils::GetPainterTextWidth(QPainter* pPainter, const QString& str)

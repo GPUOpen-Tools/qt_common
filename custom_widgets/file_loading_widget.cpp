@@ -243,11 +243,11 @@ void FileLoadingWidget::paintEvent(QPaintEvent* event)
     painter.setRenderHint(QPainter::Antialiasing);
 
     // Draw background of widget
-    painter.setBrush(palette().background());
+    painter.setBrush(palette().window());
     painter.setPen(Qt::NoPen);
     painter.drawRect(0, 0, width(), height());
 
-    painter.setBrush(palette().foreground());
+    painter.setBrush(palette().windowText());
     double x_offset = (contentsRect().width() / 2) - 1;
     painter.translate(contentsRect().center() - QPoint(x_offset, 0));
 

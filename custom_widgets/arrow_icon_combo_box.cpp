@@ -635,15 +635,16 @@ bool ArrowIconComboBox::eventFilter(QObject* object, QEvent* event)
 {
     Q_UNUSED(object);
 
-    Q_ASSERT(item_list_ != nullptr);
-
-    if (event != nullptr && item_list_ != nullptr)
+    if (event != nullptr)
     {
         if (event->type() == QEvent::MouseButtonPress)
         {
-            if ((this->underMouse() == false) && (item_list_->underMouse() == false))
+            if (item_list_ != nullptr)
             {
-                CloseMenu();
+                if ((this->underMouse() == false) && (item_list_->underMouse() == false))
+                {
+                    CloseMenu();
+                }
             }
         }
     }
@@ -793,7 +794,7 @@ void ArrowIconComboBox::paintEvent(QPaintEvent* event)
     painter.save();
 
     // Paint background
-    painter.fillRect(rect(), palette().background());
+    painter.fillRect(rect(), palette().window());
 
     // Set properties for the lines
     QPen pen;

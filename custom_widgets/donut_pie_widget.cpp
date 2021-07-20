@@ -44,7 +44,7 @@ void DonutPieWidget::paintEvent(QPaintEvent* paint_event)
     QPainter painter(this);
 
     painter.setRenderHint(QPainter::Antialiasing);
-    painter.fillRect(rect(), palette().background());
+    painter.fillRect(rect(), palette().window());
 
     const int width  = rect().width();
     const int height = rect().height();
@@ -56,7 +56,7 @@ void DonutPieWidget::paintEvent(QPaintEvent* paint_event)
     const QFontMetrics& font_metrics = ScalingManager::Get().ScaledFontMetrics(font());
     for (unsigned int index = 0; index < num_segments_; ++index)
     {
-        const int text_width = font_metrics.width(slices_[index].slice_text_);
+        const int text_width = font_metrics.boundingRect(slices_[index].slice_text_).width();
 
         max_width = std::max(max_width, text_width);
     }
@@ -131,7 +131,7 @@ void DonutPieWidget::paintEvent(QPaintEvent* paint_event)
     }
 
     // draw the text labels on the arcs
-    painter.setPen(palette().foreground().color());
+    painter.setPen(palette().windowText().color());
     for (unsigned int loop = 0; loop < num_segments_; loop++)
     {
         const QPoint label_pos = label_positions.dequeue();

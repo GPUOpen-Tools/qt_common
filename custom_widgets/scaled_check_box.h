@@ -42,10 +42,19 @@ public:
     /// and assumes a 1:1 width:height ratio of the indicator icons.
     const QString kIndicatorSizeStylesheet_ = "ScaledCheckBox::indicator { width: %1px; height: %1px; }";
 
+protected:
+    /// \brief Reimplement changeEvent to handle resizing on fontChange.
+    /// \param event The event that caused the change.
+    virtual void changeEvent(QEvent* event) override;
+
 private slots:
     /// Handler for ScaleFactorChanged signals.
     /// Invalidates font sizes and resizes the checkbox indicator.
     void OnScaleFactorChanged();
+
+private:
+    /// Track if invalidating font metrics so the changeEvent does not become recursive.
+    bool invalidating_font_metrics_;
 };
 
 #endif  // QTCOMMON_CUSTOM_WIDGETS_SCALED_CHECKBOX_H_

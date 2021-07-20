@@ -59,8 +59,8 @@ QSize QuickLinkButtonWidget::sizeHint() const
     QFontMetrics desc_font_metrics(tmp_font);
 
     // The width is defined by the width of the widest line of text, based on the font they will be drawn with.
-    int width = std::max(std::max(title_font_metrics.width(title_string_), desc_font_metrics.width(description_line_one_)),
-                         desc_font_metrics.width(description_line_two_));
+    int width = std::max(std::max(title_font_metrics.horizontalAdvance(title_string_), desc_font_metrics.horizontalAdvance(description_line_one_)),
+                         desc_font_metrics.boundingRect(description_line_two_).width());
     width += (contentsMargins().left() + contentsMargins().right());
 
     // The height is defined by the height of the title plus two lines of description plus two line spacing between the text.

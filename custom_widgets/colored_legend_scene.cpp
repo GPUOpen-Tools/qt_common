@@ -133,9 +133,9 @@ void ColoredLegendScene::Update()
             item.rect_item_->setRect(0, 0, scaled_base_height, scaled_base_height);
             item.text_item_->setPos(x_pos + scaled_base_height, y_pos_top - kVerticalSpacingAroundText);
             item.text_item_->setFont(text_font);
-            int textWidth = font_metrics.width(item.text_item_->toPlainText());
+            const int text_width = font_metrics.boundingRect(item.text_item_->toPlainText()).width();
 
-            x_pos += scaled_base_height + textWidth + kHorizontalSpacingAfterText;
+            x_pos += scaled_base_height + text_width + kHorizontalSpacingAfterText;
         }
     }
     else if (legend_mode_ == LegendMode::kText)
@@ -144,7 +144,7 @@ void ColoredLegendScene::Update()
         {
             text_legends_[i]->setPos(x_pos, y_pos_top);
             text_legends_[i]->setFont(text_font);
-            int text_width = font_metrics.width(text_legends_[i]->toPlainText());
+            const int text_width = font_metrics.boundingRect(text_legends_[i]->toPlainText()).width();
 
             x_pos += text_width + ScalingManager::Get().Scaled(kHorizontalSpacingAfterText);
         }

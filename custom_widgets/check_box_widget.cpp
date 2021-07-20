@@ -92,8 +92,11 @@ QSize CheckBoxWidget::sizeHint() const
 
     // Calculate max length of the on and off text strings,
     // using TextShowMnemonic so that keyboard shortcuts indicated by '&' are taken into account.
-    int on_text_width  = fontMetrics().width(on_text_, -1, Qt::TextShowMnemonic);
-    int off_text_width = fontMetrics().width(off_text_, -1, Qt::TextShowMnemonic);
+    const QRect& on_rect  = fontMetrics().boundingRect(on_text_);
+    const QRect& off_rect = fontMetrics().boundingRect(off_text_);
+
+    int on_text_width  = fontMetrics().boundingRect(on_rect, Qt::TextShowMnemonic, on_text_).width();
+    int off_text_width = fontMetrics().boundingRect(off_rect, Qt::TextShowMnemonic, off_text_).width();
     int max_text_width = std::max(on_text_width, off_text_width);
 
     QSize size;

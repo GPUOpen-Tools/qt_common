@@ -7,6 +7,7 @@
 #include "scaled_check_box.h"
 
 #include <QStyle>
+#include <QEvent>
 
 #include "utils/qt_util.h"
 #include "utils/scaling_manager.h"
@@ -40,7 +41,8 @@ QSize ScaledCheckBox::sizeHint() const
 
     // Calculate length of the text string,
     // using TextShowMnemonic so that keyboard shortcuts indicated by '&' are taken into account.
-    int text_width = fontMetrics().width(text(), -1, Qt::TextShowMnemonic);
+    const QRect& rect       = fontMetrics().boundingRect(text());
+    int          text_width = fontMetrics().boundingRect(rect, Qt::TextShowMnemonic, text()).width();
 
     QSize size;
     size.setWidth(icon_width + spacing + text_width);
@@ -52,7 +54,7 @@ QSize ScaledCheckBox::sizeHint() const
 void ScaledCheckBox::UpdateIndicatorSize()
 {
     // It appears the only way (or at least easiest way) to set the indicator size is through the stylesheet.
-    this->setStyleSheet(kIndicatorSizeStylesheet_.arg(fontMetrics().height()));
+    this->setStyleSheet(kIndicatorSizeStylesheet_.arg(fontMetrics().ascent()));
 }
 
 void ScaledCheckBox::OnScaleFactorChanged()
@@ -67,4 +69,23 @@ void ScaledCheckBox::OnScaleFactorChanged()
 
     updateGeometry();
     update();
+}
+
+void ScaledCheckBox::changeEvent(QEvent* event)
+{
+    QCheckBox::changeEvent(event);
+
+    if (!invalidating_font_metrics_)
+    {
+        if (event->type() == QEvent::FontChange)
+        {
+            invalidating_font_metrics_ = true;
+            QtCommon::QtUtils::InvalidateFontMetrics(this);
+            invalidating_font_metrics_ = false;
+
+            UpdateIndicatorSize();
+
+            updateGeometry();
+        }
+    }
 }

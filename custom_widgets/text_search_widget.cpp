@@ -26,7 +26,7 @@ TextSearchWidget::TextSearchWidget(QWidget* parent)
     setStyleSheet(kTextSearchStylesheet);
 
     // connect text changed signal/slot
-    connect(this, SIGNAL(textChanged(const QString&)), this, SLOT(HandleTextChanged(const QString&)));
+    connect(this, &TextSearchWidget::textChanged, this, &TextSearchWidget::HandleTextChanged);
 
     // Set place holder text to search boxes
     setPlaceholderText("Search...");

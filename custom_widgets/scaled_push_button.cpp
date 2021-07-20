@@ -1,8 +1,8 @@
 //=============================================================================
-/// Copyright (c) 2019-2020 Advanced Micro Devices, Inc. All rights reserved.
-/// \author AMD Developer Tools Team
-/// \file
-/// \brief Scaling wrapper for QPushButton objects.
+/// Copyright (c) 2019-2021 Advanced Micro Devices, Inc. All rights reserved.
+/// @author AMD Developer Tools Team
+/// @file
+/// @brief Scaling wrapper for QPushButton objects.
 //=============================================================================
 #include "scaled_push_button.h"
 
@@ -11,6 +11,7 @@
 
 ScaledPushButton::ScaledPushButton(QWidget* parent)
     : QPushButton(parent)
+    , base_icon_size_(QSize())
 {
     setSizePolicy(QSizePolicy::Policy::Fixed, QSizePolicy::Policy::Fixed);
 
@@ -30,9 +31,22 @@ ScaledPushButton::~ScaledPushButton()
     disconnect(&ScalingManager::Get(), &ScalingManager::ScaleFactorChanged, this, &ScaledPushButton::OnScaleFactorChanged);
 }
 
+void ScaledPushButton::setIconSize(const QSize& size)
+{
+    QPushButton::setIconSize(size);
+
+    base_icon_size_ = size;
+}
+
 void ScaledPushButton::OnScaleFactorChanged()
 {
     QtCommon::QtUtils::InvalidateFontMetrics(this);
+
+    if (!icon().isNull() && base_icon_size_.isValid())
+    {
+        ScalingManager& sm = ScalingManager::Get();
+        QPushButton::setIconSize(QSize(sm.Scaled(base_icon_size_.width()), sm.Scaled(base_icon_size_.height())));
+    }
 
     if (parentWidget() != nullptr && parentWidget()->layout() != nullptr)
     {

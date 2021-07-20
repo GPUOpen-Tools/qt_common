@@ -40,13 +40,13 @@ ListWidget::ListWidget(QWidget* parent, ArrowIconComboBox* button, bool hide)
     , parent_(parent)
     , show_list_above_button_(false)
 {
-    connect(qApp, SIGNAL(focusChanged(QWidget*, QWidget*)), this, SLOT(FocusChanged(QWidget*, QWidget*)));
+    connect(qApp, &QApplication::focusChanged, this, &ListWidget::FocusChanged);
     connect(&ScalingManager::Get(), &ScalingManager::ScaleFactorChanged, this, &ListWidget::OnScaleFactorChanged);
 }
 
 ListWidget::~ListWidget()
 {
-    disconnect(qApp, SIGNAL(focusChanged(QWidget*, QWidget*)), this, SLOT(FocusChanged(QWidget*, QWidget*)));
+    disconnect(qApp, &QApplication::focusChanged, this, &ListWidget::FocusChanged);
     disconnect(&ScalingManager::Get(), &ScalingManager::ScaleFactorChanged, this, &ListWidget::OnScaleFactorChanged);
 }
 

@@ -102,10 +102,10 @@ private:
     /// An example might be a custom painted widget that should be 50x50 pixels when at 100% DPI
     /// and needs to get scaled larger at higher DPI scaling values; ie: 50*150% = 75x75 pixels at 150% DPI.
     /// And when going back down to 100% DPI, the original values can be used: ie: 50* 100% = 50x50 pixels at 100%.
-    ///< An initial DPI Scale of 200% => m_scaleFactor = 2.0;
-    ///< Changing DPI Scale to 100% => m_scaleFactor = 1.0;
-    ///< Changing DPI Scale to 200% => m_scaleFactor = 2.0;
-    ///< Changing DPI Scale to 300% => m_scaleFactor = 3.0;
+    ///< An initial DPI Scale of 200% => scale_factor_ = 2.0;
+    ///< Changing DPI Scale to 100% => scale_factor_ = 1.0;
+    ///< Changing DPI Scale to 200% => scale_factor_ = 2.0;
+    ///< Changing DPI Scale to 300% => scale_factor_ = 3.0;
     double scale_factor_;
 
     /// UI rescale factor
@@ -116,19 +116,19 @@ private:
     /// which would change a 10pt font size into a 15pt font. Thus, calling font.pointSize() would now return 15 instead of 10.
     /// In order to reduce from 150% back down to 100% DPI scaling, the current value off font.pointSize() needs to get scaled back down.
     /// The same line of code can be used to rescale down from the current value: font.setPointSize(font.pointSize() * rescale_factor_).
-    ///< An initial DPI scale of 200% => m_rescaleFactor = 1.0. (ie: there is no previous scale, so nothing changes).
-    ///< Changing DPI scale to 100% => m_rescaleFactor = 0.5 (ie: half of previous scale).
-    ///< Changing DPI scale to 200% => m_rescaleFactor = 2.0 (ie: double the previous scale).
-    ///< Changing DPI scale to 300% => m_rescaleFactor = 1.5 (ie: 1.5x the previous scale).
+    ///< An initial DPI scale of 200% => rescale_factor_ = 1.0. (ie: there is no previous scale, so nothing changes).
+    ///< Changing DPI scale to 100% => rescale_factor_ = 0.5 (ie: half of previous scale).
+    ///< Changing DPI scale to 200% => rescale_factor_ = 2.0 (ie: double the previous scale).
+    ///< Changing DPI scale to 300% => rescale_factor_ = 1.5 (ie: 1.5x the previous scale).
     double rescale_factor_;
 
     /// Font scale factor. QFontMetrics appears to calculate correctly at whatever the initial DPI scale is when the app is opened.
     /// Font PointSizes thus need to get scaled relative to that initial DPI.
-    /// If initial DPI Scale is 100%, then m_fontScaleFactor will always be equal to m_scaleFactor.
-    /// An initial DPI scale of 200% => m_fontScaleFactor = 1.0.
-    /// Changing DPI scale to 100% => m_fontScaleFactor = 0.5 (ie: half of initial scale).
-    /// Changing DPI scale to 200% => m_fontScaleFactor = 1.0 (ie: back at initial scale).
-    /// Changing DPI scale to 300% => m_fontScaleFactor = 1.5 (ie: 1.5x of initial scale).
+    /// If initial DPI Scale is 100%, then font_scale_factor_ will always be equal to scale_factor_.
+    /// An initial DPI scale of 200% => font_scale_factor_ = 1.0.
+    /// Changing DPI scale to 100% => font_scale_factor_ = 0.5 (ie: half of initial scale).
+    /// Changing DPI scale to 200% => font_scale_factor_ = 1.0 (ie: back at initial scale).
+    /// Changing DPI scale to 300% => font_scale_factor_ = 1.5 (ie: 1.5x of initial scale).
     double font_scale_factor_;
 
     /// Current screen DPI

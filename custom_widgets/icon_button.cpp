@@ -84,7 +84,7 @@ void IconButton::paintEvent(QPaintEvent* event)
     Q_UNUSED(event);
 
     QStylePainter painter(this);
-    painter.setPen(QPen(palette().color(QPalette::Background)));
+    painter.setPen(QPen(palette().color(QPalette::Window)));
     painter.drawLine(rect().topLeft(), rect().topRight());
     if (!isEnabled())
     {

@@ -109,8 +109,8 @@ QSize TabBar::tabSizeHint(int index) const
             // a call to tabwidget->adjustSize() may be needed in a showEvent
             // to force the tabwidget to update the tab-bar
             //
-            int tab_widget_width = tab_widget->width();
-            int x                = QTabBar::tabRect(index).x();
+            int tab_widget_width = tab_widget->geometry().width();
+            int x                = this->mapFromGlobal(QPoint(QTabBar::tabRect(index).x(), 0)).x();
             int remaining        = qAbs(tab_widget_width - x);
 
             return QSize(remaining, height);
