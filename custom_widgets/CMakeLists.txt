@@ -6,6 +6,10 @@ set (QTCUSTOMWIDGETS_VERSION_MINOR 0)
 
 # Build Qt .ui MOC files for the library.
 set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
+
+# Find Qt libraries to resolve dependencies.
+find_package(Qt5 COMPONENTS Widgets Gui REQUIRED)
 
 # Add all header and source files within the directory to the library.
 file (GLOB CPP_INC
@@ -23,6 +27,8 @@ file (GLOB CPP_INC
     "graphics_view.h"
     "icon_button.h"
     "list_widget.h"
+    "message_overlay.h"
+    "message_overlay_container.h"
     "navigation_bar.h"
     "navigation_list_widget.h"
     "navigation_list_view.h"
@@ -52,6 +58,11 @@ file (GLOB CPP_INC
     "timeline_view.h"
 )
 
+# Add any .ui  files
+file (GLOB UI_SRC
+    "message_overlay.ui"
+)
+
 # Add all source files found within this directory.
 file (GLOB CPP_SRC
     "arrow_icon_combo_box.cpp"
@@ -68,6 +79,8 @@ file (GLOB CPP_SRC
     "graphics_view.cpp"
     "icon_button.cpp"
     "list_widget.cpp"
+    "message_overlay.cpp"
+    "message_overlay_container.cpp"
     "navigation_bar.cpp"
     "navigation_list_widget.cpp"
     "navigation_list_view.cpp"
@@ -98,13 +111,10 @@ file (GLOB CPP_SRC
 )
 
 # Pick up the source files that are relevant to the platform
-add_library(${PROJECT_NAME} STATIC ${CPP_SRC} ${CPP_INC})
+add_library(${PROJECT_NAME} STATIC ${CPP_SRC} ${CPP_INC} ${UI_SRC})
 
 # Include QtCommon root directory
 include_directories(AFTER ../)
-
-# Find Qt libraries to resolve dependencies.
-find_package(Qt5 COMPONENTS Widgets REQUIRED)
 
 # Set binary suffix
 target_link_libraries(${PROJECT_NAME} Qt5::Widgets)

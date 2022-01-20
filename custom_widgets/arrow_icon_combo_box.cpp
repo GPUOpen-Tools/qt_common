@@ -798,7 +798,16 @@ void ArrowIconComboBox::paintEvent(QPaintEvent* event)
 
     // Set properties for the lines
     QPen pen;
-    pen.setColor(color_);
+
+    if (isEnabled())
+    {
+        pen.setColor(color_);
+    }
+    else
+    {
+        pen.setColor(Qt::lightGray);
+    }
+
     pen.setWidth(sm.Scaled(pen_width_));
     painter.setPen(pen);
 
@@ -827,7 +836,14 @@ void ArrowIconComboBox::paintEvent(QPaintEvent* event)
     painter.restore();
 
     painter.setFont(this->font());
-    pen.setColor(font_color_);
+    if (isEnabled())
+    {
+        pen.setColor(font_color_);
+    }
+    else
+    {
+        pen.setColor(Qt::gray);
+    }
     painter.setPen(pen);
 
     // Highlight substring if it is requested.

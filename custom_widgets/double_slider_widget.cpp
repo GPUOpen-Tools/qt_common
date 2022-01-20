@@ -64,7 +64,7 @@ void DoubleSliderWidget::Init()
     upper_value_           = 0;
     lower_pos_             = 0;
     upper_pos_             = 0;
-    offset_pos             = 0;
+    offset_pos_            = 0;
     position_              = 0;
     last_pressed_span_     = DoubleSliderWidget::kNoHandle;
     main_span_control_     = DoubleSliderWidget::kLowerHandle;
@@ -131,10 +131,10 @@ int DoubleSliderWidget::PixelPosToRangeValue(int pixel_position) const
     return QStyle::sliderValueFromPosition(slider->minimum(), slider->maximum(), pixel_position - slider_min, slider_max - slider_min, option.upsideDown);
 }
 
-void DoubleSliderWidget::HandleMousePress(const QPoint& mouse_position, QStyle::SubControl& control, int value, DoubleSliderWidget::SpanHandle span_hande)
+void DoubleSliderWidget::HandleMousePress(const QPoint& mouse_position, QStyle::SubControl& control, int value, DoubleSliderWidget::SpanHandle span_handle)
 {
     QStyleOptionSlider option;
-    InitStyleOption(&option, span_hande);
+    InitStyleOption(&option, span_handle);
 
     const QStyle::SubControl old_control = control;
     control                             = style()->hitTestComplexControl(QStyle::CC_Slider, &option, mouse_position, this);
@@ -143,10 +143,10 @@ void DoubleSliderWidget::HandleMousePress(const QPoint& mouse_position, QStyle::
     if (control == QStyle::SC_SliderHandle)
     {
         position_          = value;
-        offset_pos         = Pick(mouse_position - handle_rect.topLeft());
-        last_pressed_span_ = span_hande;
+        offset_pos_        = Pick(mouse_position - handle_rect.topLeft());
+        last_pressed_span_ = span_handle;
         setSliderDown(true);
-        emit SliderPressed(span_hande);
+        emit SliderPressed(span_handle);
     }
 
     if (control != old_control)
@@ -570,12 +570,42 @@ void DoubleSliderWidget::mousePressEvent(QMouseEvent* event)
 
     HandleMousePress(event->pos(), upper_pressed_control_, upper_value_, DoubleSliderWidget::kUpperHandle);
 
-    if (upper_pressed_control_ != QStyle::SC_SliderHandle)
+    if (upper_pressed_control_ == QStyle::SC_SliderHandle)
     {
-        HandleMousePress(event->pos(), lower_pressed_control_, lower_value_, DoubleSliderWidget::kLowerHandle);
+        is_first_movement_ = true;
+        event->accept();
+        return;
+    }
+
+    HandleMousePress(event->pos(), lower_pressed_control_, lower_value_, DoubleSliderWidget::kLowerHandle);
+
+    if (lower_pressed_control_ == QStyle::SC_SliderHandle)
+    {
+        is_first_movement_ = true;
+        event->accept();
+        return;
+    }
+
+
+    // Neither handle was hit, so find the closest one, and then execute a mouseMoveEvent also.
+
+    int new_position = PixelPosToRangeValue(Pick(event->pos()) - offset_pos_);
+    if (new_position < 0.5 * (lower_pos_ + upper_pos_))
+    {
+        lower_pressed_control_ = QStyle::SC_SliderHandle;
+        position_ = lower_pos_;
+    }
+    else
+    {
+        upper_pressed_control_ = QStyle::SC_SliderHandle;
+        position_ = upper_pos_;
     }
 
     is_first_movement_ = true;
+
+    // call the mouse move helper function
+    HandleMouseMove(event->pos());
+
     event->accept();
 }
 
@@ -587,16 +617,24 @@ void DoubleSliderWidget::mouseMoveEvent(QMouseEvent* event)
         return;
     }
 
+    // call the helper function
+    HandleMouseMove(event->pos());
+
+    event->accept();
+}
+
+void DoubleSliderWidget::HandleMouseMove(const QPoint& mouse_position)
+{
     QStyleOptionSlider option;
     initStyleOption(&option);
     const int pixel_metric = style()->pixelMetric(QStyle::PM_MaximumDragDistance, &option, this);
-    int       new_position = PixelPosToRangeValue(Pick(event->pos()) - offset_pos);
+    int       new_position = PixelPosToRangeValue(Pick(mouse_position) - offset_pos_);
 
     if (pixel_metric >= 0)
     {
         const QRect slider_rect = rect().adjusted(-pixel_metric, -pixel_metric, pixel_metric, pixel_metric);
 
-        if (!slider_rect.contains(event->pos()))
+        if (!slider_rect.contains(mouse_position))
         {
             new_position = position_;
         }
@@ -661,8 +699,6 @@ void DoubleSliderWidget::mouseMoveEvent(QMouseEvent* event)
             SetUpperPosition(new_position);
         }
     }
-
-    event->accept();
 }
 
 void DoubleSliderWidget::mouseReleaseEvent(QMouseEvent* event)

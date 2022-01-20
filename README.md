@@ -1,2 +1,1 @@
-# QtCommon
-Common QT framework shared by multiple tools
+Common Qt framework shared by multiple tools.

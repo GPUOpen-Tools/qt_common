@@ -38,6 +38,7 @@ class ArrowIconComboBox : public QPushButton
     Q_OBJECT
 
     Q_PROPERTY(QColor fontColor READ GetFontColor WRITE SetFontColor)
+    Q_PROPERTY(int currentItem READ CurrentRow WRITE SetSelectedRow)
 
     friend class ListWidget;
 

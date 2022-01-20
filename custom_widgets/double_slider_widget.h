@@ -104,6 +104,11 @@ public:
     /// \param span_handle The slider handle which generated the mouse press event.
     void HandleMousePress(const QPoint& mouse_position, QStyle::SubControl& control, int value, DoubleSliderWidget::SpanHandle span_handle);
 
+    /// This helper function is for mouse move, but is also called
+    /// from mouse down events in a few cases.
+    /// \param mouse_position The position of mouse.
+    void HandleMouseMove(const QPoint& mouse_position);
+
     /// Sets trigger actions for this item.
     /// \param slider_action The slider action for this item.
     /// \param main_action This variable states wheter slider action is main action.
@@ -202,7 +207,7 @@ private:
     int                                        upper_value_;            ///< upper value of the slider
     int                                        lower_pos_;              ///< lower position of the slider
     int                                        upper_pos_;              ///< upper position of the slider
-    int                                        offset_pos;              ///< offset to the position
+    int                                        offset_pos_;             ///< offset to the position
     int                                        position_;               ///< position of slider
     DoubleSliderWidget::SpanHandle             last_pressed_span_;      ///< last pressed state of span handle
     DoubleSliderWidget::SpanHandle             main_span_control_;      ///< main control of span handle

@@ -18,6 +18,7 @@ file (GLOB CPP_INC
     "scaling_manager.h"
     "zoom_icon_manager.h"
     "zoom_icon_group_manager.h"
+    "locale_setting.h"
 )
 
 # Add all source files found within this directory.
@@ -29,6 +30,7 @@ file (GLOB CPP_SRC
     "scaling_manager.cpp"
     "zoom_icon_manager.cpp"
     "zoom_icon_group_manager.cpp"
+    "locale_setting.cpp"
 )
 
 # Pick up the source files that are relevant to the platform
