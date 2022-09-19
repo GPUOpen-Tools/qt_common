@@ -13,17 +13,17 @@
 #include "utils/scaling_manager.h"
 
 ScaledCheckBox::ScaledCheckBox(QWidget* parent)
-    : QCheckBox(parent)
+    : ScaledCheckBox({}, parent)
 {
-    setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-    connect(&ScalingManager::Get(), &ScalingManager::ScaleFactorChanged, this, &ScaledCheckBox::OnScaleFactorChanged);
 }
 
 ScaledCheckBox::ScaledCheckBox(const QString& text, QWidget* parent)
     : QCheckBox(text, parent)
 {
     setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-    connect(&ScalingManager::Get(), &ScalingManager::ScaleFactorChanged, this, &ScaledCheckBox::OnScaleFactorChanged);
+
+    // Use a queued connection so that the scaling logic runs on the next main loop iteration
+    connect(&ScalingManager::Get(), &ScalingManager::ScaleFactorChanged, this, &ScaledCheckBox::OnScaleFactorChanged, Qt::QueuedConnection);
 }
 
 ScaledCheckBox::~ScaledCheckBox()

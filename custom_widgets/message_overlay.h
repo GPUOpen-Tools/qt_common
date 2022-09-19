@@ -27,6 +27,7 @@ public:
     {
         Question,
         Warning,
+        Info,
         Error
     };
 
@@ -82,6 +83,17 @@ public:
                                                     const QString&                    text,
                                                     QDialogButtonBox::StandardButtons buttons        = QDialogButtonBox::Ok,
                                                     QDialogButtonBox::StandardButton  default_button = QDialogButtonBox::NoButton);
+
+    /// @brief Displays an informational message.
+    /// @param title The message title
+    /// @param text The message text
+    /// @param buttons The buttons to display
+    /// @param default_button The default button
+    /// @return user chosen result of message overlay
+    static QDialogButtonBox::StandardButton Info(const QString&                    title,
+                                                 const QString&                    text,
+                                                 QDialogButtonBox::StandardButtons buttons        = QDialogButtonBox::Ok,
+                                                 QDialogButtonBox::StandardButton  default_button = QDialogButtonBox::NoButton);
 
     /// @brief Displays a question.
     /// @param title The message title

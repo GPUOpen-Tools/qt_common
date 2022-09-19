@@ -69,6 +69,11 @@ void MessageOverlay::SetType(Type type)
         // red
         ui_->translucentColorSlice->setStyleSheet(QStringLiteral("background-color: rgba(254, 30, 55, 128);"));
     }
+    else if (type == Type::Info)
+    {
+        // blue
+        ui_->translucentColorSlice->setStyleSheet(QStringLiteral("background-color: rgba(88, 166, 255, 128);"));
+    }
     else
     {
         // yellow
@@ -106,6 +111,21 @@ QDialogButtonBox::StandardButton MessageOverlay::Warning(const QString&         
     if (container != nullptr)
     {
         return container->ShowMessageOverlay(title, text, buttons, default_button, MessageOverlay::Type::Warning);
+    }
+
+    return QDialogButtonBox::StandardButton::NoButton;
+}
+
+QDialogButtonBox::StandardButton MessageOverlay::Info(const QString&                    title,
+                                                      const QString&                    text,
+                                                      QDialogButtonBox::StandardButtons buttons,
+                                                      QDialogButtonBox::StandardButton  default_button)
+{
+    MessageOverlayContainer* container = MessageOverlayContainer::Get();
+    Q_ASSERT(container != nullptr);
+    if (container != nullptr)
+    {
+        return container->ShowMessageOverlay(title, text, buttons, default_button, MessageOverlay::Type::Info);
     }
 
     return QDialogButtonBox::StandardButton::NoButton;

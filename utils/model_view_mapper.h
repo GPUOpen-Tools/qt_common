@@ -50,6 +50,12 @@ protected:
     /// \param data The data to associate with the id.
     void SetModelData(int id, const QVariant& data);
 
+    /// Set the data for the given model, including a tooltip.
+    /// \param id The model id to set data for.
+    /// \param data The data to associate with the id.
+    /// \param tool_tip The tool tip string to associate with the id.
+    void SetModelData(int id, const QVariant& data, const QString& tool_tip);
+
     /// Retrieve the widget mapped to the given widget id.
     /// \param id The widget id to retrieve the widget for.
     /// \returns A pointer to the given widget id.

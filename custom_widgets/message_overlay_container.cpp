@@ -48,7 +48,7 @@ void MessageOverlayContainer::resizeEvent(QResizeEvent* event)
 {
     QWidget::resizeEvent(event);
 
-    if(active_overlay_ != nullptr)
+    if (active_overlay_ != nullptr)
     {
         active_overlay_->setGeometry(this->geometry());
     }
@@ -94,6 +94,8 @@ QDialogButtonBox::StandardButton MessageOverlayContainer::ShowMessageOverlay(con
     SetEnableBlur(true);
 
     MessageOverlay message_overlay(Get());
+    active_overlay_ = &message_overlay;
+
     message_overlay.SetTitle(title);
     message_overlay.SetText(text);
     message_overlay.SetType(type);
@@ -104,7 +106,6 @@ QDialogButtonBox::StandardButton MessageOverlayContainer::ShowMessageOverlay(con
 
     emit MessageOverlayShown();
 
-    active_overlay_ = &message_overlay;
     message_overlay.exec();
     active_overlay_ = nullptr;
 

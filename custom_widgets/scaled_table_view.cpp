@@ -79,6 +79,11 @@ void ScaledTableView::SetDefaultProperties(int padding)
     setAlternatingRowColors(true);
 }
 
+ScaledHeaderView* ScaledTableView::GetHeaderView()
+{
+    return horizontal_header_;
+}
+
 void ScaledTableView::SetColumnPadding(int padding)
 {
     column_padding_ = padding;

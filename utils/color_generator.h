@@ -1,5 +1,5 @@
 //=============================================================================
-/// Copyright (c) 2016-2020 Advanced Micro Devices, Inc. All rights reserved.
+/// Copyright (c) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
 /// \author AMD Developer Tools Team
 /// \file
 /// \brief  ColorGenerator header file
@@ -27,6 +27,11 @@ public:
     /// \param index The required color index
     /// \return the color corresponding to the index provided
     QColor GetColor(size_t index);
+
+    /// Changes the seed of the mt19937 random number algorithm used for color generation.
+    /// Clears the list of all random colors that were previously generated.
+    /// \param new_seed the value of the new seed.
+    void ReseedColors(uint64_t new_seed);
 
 private:
     /// Calculate the value of a color component.

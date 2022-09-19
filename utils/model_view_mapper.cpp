@@ -61,6 +61,23 @@ void ModelViewMapper::SetModelData(int id, const QVariant& data)
     }
 }
 
+void ModelViewMapper::SetModelData(int id, const QVariant& data, const QString& tool_tip)
+{
+    Q_ASSERT(control_model_array_ != nullptr);
+    Q_ASSERT(id >= 0);
+    Q_ASSERT((uint32_t)id < model_count_);
+
+    if (control_model_array_ != nullptr && (id >= 0) && ((uint32_t)id < model_count_))
+    {
+        control_model_array_[id]->setData(control_model_array_[id]->index(0, 0), data);
+        QWidget* w = GetMappedWidget(id);
+        if (w)
+        {
+            w->setToolTip(tool_tip);
+        }
+    }
+}
+
 int ModelViewMapper::GetMappedWidgetId(const QWidget* widget) const
 {
     Q_ASSERT(widget != nullptr);

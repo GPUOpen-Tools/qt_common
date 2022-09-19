@@ -13,6 +13,7 @@
 #include <QSizePolicy>
 #include <QTabBar>
 #include <QWidget>
+#include <QApplication>
 
 #include "utils/qt_util.h"
 #include "utils/scaling_manager.h"
@@ -94,26 +95,22 @@ QSize TabBar::tabSizeHint(int index) const
     }
     else if ((index == count() - 1) && stretch_last_)
     {
-        QTabWidget* tab_widget = qobject_cast<QTabWidget*>(this->parentWidget());
-        if (tab_widget != nullptr)
+        // Find the main container window
+        QMainWindow* main_window = nullptr;
+        for (QWidget* widget : qApp->topLevelWidgets())
         {
-            // Properly handle the sizing of the stretch tab.
-            // We need to only stretch the tab within the space it needs.
-            // So this is [Tab 1][Tab 2][Tab 3][Stretch Tab]----------[End]
-            // From [Stretch Tab] to [End] with [End] being the width
-            // of the tabwidget
-            //
-            // NOTE:
-            // It may be the case that the width of the tab widget
-            // isn't fully realized upon application startup. In this case,
-            // a call to tabwidget->adjustSize() may be needed in a showEvent
-            // to force the tabwidget to update the tab-bar
-            //
-            int tab_widget_width = tab_widget->geometry().width();
-            int x                = this->mapFromGlobal(QPoint(QTabBar::tabRect(index).x(), 0)).x();
-            int remaining        = qAbs(tab_widget_width - x);
+            if (widget->inherits("QMainWindow"))
+            {
+                main_window = qobject_cast<QMainWindow*>(widget);
+                break;
+            }
+        }
 
-            return QSize(remaining, height);
+        if (main_window != nullptr)
+        {
+            // Stretch to fit the width of the window
+            int main_window_width = main_window->geometry().width();
+            return QSize(main_window_width, height);
         }
     }
     else if (tabText(index).isEmpty())
@@ -149,6 +146,7 @@ void TabBar::SetSpacerIndex(int index)
     {
         setTabEnabled(index, false);
         setTabText(index, "");
+        adjustSize();
     }
     spacer_index_ = index;
 }
@@ -177,13 +175,14 @@ int TabBar::CalcSpacerWidth() const
         return 0;
     }
 
-    QRect left_tab_rect;
-    if (count() > 1)
+    int spacer_width = parentWidget()->width();
+    for (int i = 0; i < count(); i++)
     {
-        left_tab_rect = tabRect(spacer_index_ - 1);
+        if (i != spacer_index_)
+        {
+            spacer_width -= tabRect(i).width();
+        }
     }
 
-    int right_tabs_width = left_tab_rect.width() * (count() - (spacer_index_ + 1));
-    int spacer_width     = parentWidget()->width() - (left_tab_rect.right() + right_tabs_width);
     return spacer_width;
 }

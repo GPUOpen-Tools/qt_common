@@ -1,5 +1,5 @@
 //=============================================================================
-/// Copyright (c) 2016-2020 Advanced Micro Devices, Inc. All rights reserved.
+/// Copyright (c) 2016-2022 Advanced Micro Devices, Inc. All rights reserved.
 /// \author AMD Developer Tools Team
 /// \file
 /// \brief  Implementation of the ColorGenerator. This is used to create a
@@ -43,7 +43,7 @@ int ColorGenerator::GetComponent(const int random_range, const int offset)
 QColor ColorGenerator::GetColor(size_t index)
 {
     size_t size_needed = index + 1;
-    size_t size       = color_list_.size();
+    size_t size        = color_list_.size();
     if (size_needed > size)
     {
         int last_hue = 0;
@@ -74,4 +74,10 @@ QColor ColorGenerator::GetColor(size_t index)
     }
 
     return color_list_[index];
+}
+
+void ColorGenerator::ReseedColors(uint64_t new_seed)
+{
+    sRandomAlgorithm.seed(new_seed);
+    color_list_.clear();
 }

@@ -43,6 +43,10 @@ public:
     /// This is a pass-through to the horizontal header.
     void SetColumnWidthEms(const int column, const int em_count);
 
+    /// Get the header view, to allow more customization externally.
+    /// \return The header view.
+    ScaledHeaderView* GetHeaderView();
+
 protected:
     /// Reimplemented to add column padding to the sizeHint.
     /// \param column The column index.
