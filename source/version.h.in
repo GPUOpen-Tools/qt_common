@@ -1,0 +1,24 @@
+//=============================================================================
+// Copyright (c) 2023 Advanced Micro Devices, Inc. All rights reserved.
+/// @author AMD Developer Tools Team
+/// @file
+/// @brief QtCommon version header
+//=============================================================================
+
+#ifndef QTCOMMON_VERSION_H_
+#define QTCOMMON_VERSION_H_
+
+#define STRINGIFY_MACRO_(a) #a
+#define STRINGIFY_MACRO(a) STRINGIFY_MACRO_(a)
+#define STRINGIFY_VERSION(major, minor, patch, build) STRINGIFY_MACRO(v) STRINGIFY_MACRO(major) "." STRINGIFY_MACRO(minor) "." STRINGIFY_MACRO(patch) "." STRINGIFY_MACRO(build)
+
+#define QTCOMMON_MAJOR_VERSION @QTCOMMON_MAJOR_VERSION@  ///< Major version number.
+#define QTCOMMON_MINOR_VERSION @QTCOMMON_MINOR_VERSION@  ///< Minor version number.
+#define QTCOMMON_PATCH_NUMBER  @QTCOMMON_PATCH_NUMBER@   ///< Patch number.
+#define QTCOMMON_BUILD_NUMBER  @QTCOMMON_BUILD_NUMBER@   ///< Build number.
+#define QTCOMMON_BUILD_SUFFIX  @QTCOMMON_BUILD_SUFFIX@   ///< Build suffix
+#define QTCOMMON_BUILD_DATE_STRING @DATE@
+#define QTCOMMON_BUILD_YEAR @YEAR@
+#define QTCOMMON_VERSION STRINGIFY_VERSION(QTCOMMON_MAJOR_VERSION, QTCOMMON_MINOR_VERSION, QTCOMMON_PATCH_NUMBER, QTCOMMON_BUILD_NUMBER)
+
+#endif
