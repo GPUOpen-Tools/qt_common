@@ -23,6 +23,10 @@ DonutPieWidget::DonutPieWidget(QWidget* parent)
     , arc_width_(1.0)
     , text_line_one_("")
     , text_line_two_("")
+    , size_(kDefaultWidthAndHeight_)
+    , value_font_size_(kValuePixelFontSize_)
+    , text_font_size_(kTextPixelFontSize_)
+
 {
     connect(&ScalingManager::Get(), &ScalingManager::ScaleFactorChanged, this, &QWidget::updateGeometry);
 }
@@ -34,7 +38,7 @@ DonutPieWidget::~DonutPieWidget()
 
 QSize DonutPieWidget::sizeHint() const
 {
-    return ScalingManager::Get().Scaled(QSize(kDefaultWidthAndHeight_, kDefaultWidthAndHeight_));
+    return ScalingManager::Get().Scaled(QSize(size_, size_));
 }
 
 void DonutPieWidget::paintEvent(QPaintEvent* paint_event)
@@ -139,7 +143,7 @@ void DonutPieWidget::paintEvent(QPaintEvent* paint_event)
     }
 
     // Draw the description text
-    font.setPixelSize(ScalingManager::Get().Scaled(kValuePixelFontSize_));
+    font.setPixelSize(ScalingManager::Get().Scaled(value_font_size_));
     painter.setFont(font);
     painter.setPen(Qt::black);
 
@@ -149,7 +153,7 @@ void DonutPieWidget::paintEvent(QPaintEvent* paint_event)
     int desc_y_pos = (height * 52) / 100;
     painter.drawText(desc_x_pos, desc_y_pos, text_line_one_);
 
-    font.setPixelSize(ScalingManager::Get().Scaled(kTextPixelFontSize_));
+    font.setPixelSize(ScalingManager::Get().Scaled(text_font_size_));
     painter.setFont(font);
     text_width = QtCommon::QtUtils::GetPainterTextWidth(&painter, text_line_two_);
     desc_x_pos = (width - text_width) / 2;
@@ -204,4 +208,15 @@ void DonutPieWidget::SetTextLineOne(const QString& text)
 void DonutPieWidget::SetTextLineTwo(const QString& text)
 {
     text_line_two_ = text;
+}
+
+void DonutPieWidget::SetFontSizes(int value_font_size, int text_font_size)
+{
+    value_font_size_ = value_font_size;
+    text_font_size_  = text_font_size;
+}
+
+void DonutPieWidget::SetSize(int size)
+{
+    size_ = size;
 }

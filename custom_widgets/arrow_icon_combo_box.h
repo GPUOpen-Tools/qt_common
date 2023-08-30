@@ -114,9 +114,13 @@ public:
     /// \param role Data role defaults to Qt::UserRole.
     QVariant ItemData(int index, int role = Qt::UserRole) const;
 
-    /// Remove a list item.
+    /// Remove all list items with the given string.
     /// \param item_string The string to be removed from the list.
     void RemoveItem(const QString& item_string);
+
+    /// Remove a single list item at the given index.
+    /// \param item_index The index to be removed from the list.
+    void RemoveItem(const int item_index);
 
     /// Is an item in the list checked
     /// \param list_index The index of the item in the list to test
@@ -162,6 +166,9 @@ public:
     /// Set current row
     /// \param index the list index to select
     void SetSelectedRow(int index);
+
+    /// @brief Clear any row that is currently shown as selected.
+    void ClearSelectedRow();
 
     /// Specify a maximum height of the pop-up list.
     /// \param height new height
@@ -238,6 +245,12 @@ public:
     /// Set the boolean to indicate if the border should be drawn.
     /// \param value The boolean to indicate if the border should be drawn
     void SetShowBorder(bool value);
+
+    /// @brief Remove the event filter that was installed during initialization.
+    void RemoveEventFilter();
+
+    /// @brief Toggle the direction of the arrow next to the combo box.
+    void ToggleDirection();
 
 signals:
     /// Emitted when the list has been opened.

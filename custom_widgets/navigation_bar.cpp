@@ -10,8 +10,15 @@
 
 #include "utils/scaling_manager.h"
 
+const QString kBrowseBackNormalResource_      = ":/Resources/assets/browse_back_normal.svg";
+const QString kBrowseBackPressedResource_     = ":/Resources/assets/browse_back_pressed.svg";
+const QString kBrowseBackDisabledResource_    = ":/Resources/assets/browse_back_disabled.svg";
+const QString kBrowseForwardNormalResource_   = ":/Resources/assets/browse_fwd_normal.svg";
+const QString kBrowseForwardPressedResource_  = ":/Resources/assets/browse_fwd_pressed.svg";
+const QString kBrowseForwardDisabledresource_ = ":/Resources/assets/browse_fwd_disabled.svg";
+
 NavigationBar::NavigationBar(QWidget* parent)
-    : QAbstractButton(parent)
+    : QWidget(parent)
     , layout_(this)
     , browse_back_button_(this, kBrowseBackNormalResource_, kBrowseBackNormalResource_, kBrowseBackPressedResource_, kBrowseBackDisabledResource_)
     , browse_forward_button_(this,

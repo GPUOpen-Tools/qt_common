@@ -3,7 +3,7 @@
 /// \author AMD Developer Tools Team
 /// \file
 /// \brief Header for a donut pie widget.
-/// 
+///
 /// This is like a pie chart, but with a hole in the center.
 //=============================================================================
 
@@ -18,54 +18,74 @@ class DonutPieWidget : public QWidget
     Q_OBJECT
 
 public:
-
-    /// Explicit constructor
-    /// \param parent The parent widget
+    /// Explicit constructor.
+    ///
+    /// @param [in] parent The parent widget
     explicit DonutPieWidget(QWidget* parent);
 
-    /// Virtual destructor
+    /// Virtual destructor.
     virtual ~DonutPieWidget();
 
-    /// Custom sizeHint implementation that supports DPI scaling.
-    /// \return A default sizeHint since the size of this widget can grow to fit
+    /// @brief Custom sizeHint implementation that supports DPI scaling.
+    ///
+    /// @return A default sizeHint since the size of this widget can grow to fit
     /// the space allowed by the layout.
     virtual QSize sizeHint() const Q_DECL_OVERRIDE;
 
-    /// Set the number of segments for this control. This is the number of
+    /// @brief Set the number of segments for this control. This is the number of
     /// unique data elements to be shown in this control
-    /// \param numSegments the number of segments needed
+    ///
+    /// @param [in] numSegments the number of segments needed
     void SetNumSegments(unsigned int numSegments);
 
-    /// Set the value for the given index for the control.
-    /// \param index the index whose value is to change
-    /// \param value the new value to use
+    /// @brief Set the value for the given index for the control.
+    ///
+    /// @param [in] index the index whose value is to change
+    /// @param [in] value the new value to use
     void SetIndexValue(unsigned int index, qreal value);
 
-    /// Set the fill color for the given index for the control.
-    /// \param index the index whose color is to change
-    /// \param fillColor the color to use
+    /// @brief Set the fill color for the given index for the control.
+    ///
+    /// @param [in] index the index whose color is to change
+    /// @param [in] fillColor the color to use
     void SetIndexColor(unsigned int index, const QColor& fillColor);
 
-    /// Set the text to be displayed in the pie segment.
-    /// \param index the index whose text is to change
-    /// \param text the text to be shown
+    /// @brief Set the text to be displayed in the pie segment.
+    ///
+    /// @param [in] index the index whose text is to change
+    /// @param [in] text the text to be shown
     void SetIndexText(unsigned int index, const QString& text);
 
-    /// Set how wide the donut section should be.
-    /// \param arcWidth the width of the donut arc
+    /// @brief Set how wide the donut section should be.
+    ///
+    /// @param [in] arcWidth the width of the donut arc
     void SetArcWidth(qreal arcWidth);
 
-    /// Set the first line of text inside the donut
-    /// \param text Text to set
+    /// @brief Set the first line of text inside the donut
+    ///
+    /// @param [in] text Text to set
     void SetTextLineOne(const QString& text);
 
-    /// Set the second line of text inside the donut
-    /// \param text Text to set
+    /// @brief Set the second line of text inside the donut
+    ///
+    /// @param [in] text Text to set
     void SetTextLineTwo(const QString& text);
 
+    /// @brief Set the size of the font parameters for the donut.
+    ///
+    /// @param [in] value_font_size  The size of the font used to display the numeric value, in pixels.
+    /// @param [in] text_font_size   The size of the font used to display the donut text, in pixels.
+    void SetFontSizes(int value_font_size, int text_font_size);
+
+    /// @brief Set the width/height size of the donut.
+    ///
+    /// @param [in] size             The width/height of the donut.
+    void SetSize(int size);
+
 protected:
-    /// Implementation of Qt's paint for this item.
-    /// \param paint_event The paint event.
+    /// @brief Implementation of Qt's paint for this item.
+    ///
+    /// @param [in] paint_event The paint event.
     virtual void paintEvent(QPaintEvent* paint_event) Q_DECL_OVERRIDE;
 
 private:
@@ -94,15 +114,18 @@ private:
     const int kValuePixelFontSize_ = 36;
 
     /// Default font pixel-size for writing the text.
-    const int kTextPixelFontSize_  = 14;
+    const int kTextPixelFontSize_ = 14;
 
     /// Vector of slice data.
     QVector<SliceData> slices_;
 
-    unsigned int num_segments_;   ///< number of segments (values) in the pie control
-    qreal        arc_width_;      ///< width of the control arc, in pixels. This is used as the size of the pen used to draw the arc
-    QString      text_line_one_;  ///< text in the center of the donut
-    QString      text_line_two_;  ///< text in the center of the donut
+    unsigned int num_segments_;     ///< Number of segments (values) in the pie control.
+    qreal        arc_width_;        ///< Width of the control arc, in pixels. This is used as the size of the pen used to draw the arc.
+    QString      text_line_one_;    ///< Text in the center of the donut.
+    QString      text_line_two_;    ///< Text in the center of the donut.
+    int          size_;             ///< The width / height of the donut.
+    int          value_font_size_;  ///< The font size used to display the donut value, in pixels.
+    int          text_font_size_;   ///< The font size used to display the donut text, in pixels.
 };
 
 #endif  // QTCOMMON_CUSTOM_WIDGETS_DONUT_PIE_WIDGET_H_

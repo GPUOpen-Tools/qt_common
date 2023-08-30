@@ -17,10 +17,10 @@
 #include "scaled_check_box.h"
 #include "scaled_label.h"
 
-const static int kAllIndex       = 0;  ///< The index of the "All" checkbox, if used.
-static const int kTextOffsetX    = 4;  ///< The spacing between the arrow and text, and after the text.
-static const int kButtonBaseSize = 18; ///< The dimensions of the arrow when viewed at 100% DPI.
-static const int kPenWidth       = 3;  ///< The width of the pen used to draw the arrow.
+const static int kAllIndex       = 0;   ///< The index of the "All" checkbox, if used.
+static const int kTextOffsetX    = 4;   ///< The spacing between the arrow and text, and after the text.
+static const int kButtonBaseSize = 18;  ///< The dimensions of the arrow when viewed at 100% DPI.
+static const int kPenWidth       = 3;   ///< The width of the pen used to draw the arrow.
 
 ArrowIconComboBox::ArrowIconComboBox(QWidget* parent)
     : QPushButton(parent)
@@ -267,6 +267,18 @@ void ArrowIconComboBox::SetSelectedRow(int index)
             }
         }
     }
+}
+
+void ArrowIconComboBox::ClearSelectedRow()
+{
+    Q_ASSERT(item_list_ != nullptr);
+
+    if (item_list_ == nullptr)
+    {
+        return;
+    }
+
+    item_list_->setCurrentItem(nullptr);
 }
 
 void ArrowIconComboBox::AllCheckboxClicked(bool checked)
@@ -543,10 +555,19 @@ void ArrowIconComboBox::RemoveItem(const QString& item_string)
 {
     Q_ASSERT(item_list_ != nullptr);
 
-    if (item_list_ != nullptr)
+    if (item_list_ == nullptr || item_list_->count() == 0)
     {
-        const QList<QListWidgetItem*> list = item_list_->findItems(item_string, Qt::MatchExactly);
-        foreach (QListWidgetItem* item, list)
+        return;
+    }
+
+    for (int i = item_list_->count() - 1; i >= 0; i--)
+    {
+        QListWidgetItem* item = item_list_->item(i);
+
+        ScaledLabel*    label_widget     = qobject_cast<ScaledLabel*>(item_list_->itemWidget(item));
+        ScaledCheckBox* check_box_widget = qobject_cast<ScaledCheckBox*>(item_list_->itemWidget(item));
+
+        if ((label_widget != nullptr && label_widget->text() == item_string) || (check_box_widget != nullptr && check_box_widget->text() == item_string))
         {
             // if removing the "All" item, remove the "All" functionality from the combo box
             if (all_choice_added_ == true && item_list_->item(kAllIndex) == item)
@@ -555,10 +576,31 @@ void ArrowIconComboBox::RemoveItem(const QString& item_string)
                 all_choice_added_    = false;
                 all_choice_selected_ = false;
             }
-            item_list_->removeItemWidget(item);
+
+            item = item_list_->takeItem(i);
             delete item;
         }
     }
+}
+
+void ArrowIconComboBox::RemoveItem(const int item_index)
+{
+    Q_ASSERT(item_list_ != nullptr);
+
+    if (item_list_ == nullptr || item_index >= item_list_->count() || item_index < 0)
+    {
+        return;
+    }
+
+    if (all_choice_added_ == true && item_index == kAllIndex)
+    {
+        DisconnectSignals();
+        all_choice_added_    = false;
+        all_choice_selected_ = false;
+    }
+
+    QListWidgetItem* item = item_list_->takeItem(item_index);
+    delete item;
 }
 
 void ArrowIconComboBox::SetAnchor(QPoint point)
@@ -723,7 +765,7 @@ void ArrowIconComboBox::ListItemClicked(QListWidgetItem* item)
 
 void ArrowIconComboBox::mousePressEvent(QMouseEvent* event)
 {
-    Q_UNUSED(event);
+    QPushButton::mousePressEvent(event);
 
     if (item_list_ != nullptr)
     {
@@ -784,8 +826,8 @@ void ArrowIconComboBox::paintEvent(QPaintEvent* event)
     Q_UNUSED(event);
 
     // Get the ScalingManager
-    ScalingManager& sm = ScalingManager::Get();
-    const int scaled_text_offset_x = sm.Scaled(kTextOffsetX);
+    ScalingManager& sm                   = ScalingManager::Get();
+    const int       scaled_text_offset_x = sm.Scaled(kTextOffsetX);
 
     // Set up the painter
     QPainter painter;
@@ -943,6 +985,23 @@ void ArrowIconComboBox::SetHighLightSubString(bool value)
 void ArrowIconComboBox::SetHighLightSubStringData(QVector<StringHighlightData> string_highlight_data)
 {
     string_highlight_data_ = string_highlight_data;
+}
+
+void ArrowIconComboBox::RemoveEventFilter()
+{
+    qApp->removeEventFilter(this);
+}
+
+void ArrowIconComboBox::ToggleDirection()
+{
+    if (direction_ == ArrowIconComboBox::Direction::UpArrow)
+    {
+        SetDirection(ArrowIconComboBox::Direction::DownArrow);
+    }
+    else
+    {
+        SetDirection(ArrowIconComboBox::Direction::UpArrow);
+    }
 }
 
 void ArrowIconComboBox::ClearHighLightSubStringData()

@@ -98,7 +98,7 @@ QSize ListWidget::sizeHint() const
 
     // If a scrollbar is visible, take the width of it into account.
     // This is necessary so rows aren't clipped under the scrollbar.
-    int         scroll_bar_width     = 0;
+    int         scroll_bar_width    = 0;
     QScrollBar* vertical_scroll_bar = verticalScrollBar();
     if (vertical_scroll_bar != nullptr)
     {
@@ -194,6 +194,27 @@ void ListWidget::RepositionListWidget()
         if (show_list_above_button_ == true)
         {
             list_position.setY(list_position.y() - button_rect.height() - height());
+        }
+
+        // If the list would extend off the edge of the window, then constrain
+        // the list to the window.
+        for (QWidget* widget : QApplication::topLevelWidgets())
+        {
+            if (widget->inherits("QMainWindow"))
+            {
+                QMainWindow* main_window = qobject_cast<QMainWindow*>(widget);
+
+                if (main_window != nullptr)
+                {
+                    QRect window_rect = main_window->rect();
+
+                    if (list_position.x() + width() > window_rect.right())
+                    {
+                        list_position.setX(window_rect.right() - width());
+                    }
+                    break;
+                }
+            }
         }
 
         // Move list to the new position

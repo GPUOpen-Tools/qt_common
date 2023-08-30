@@ -8,13 +8,13 @@
 #ifndef QTCOMMON_CUSTOM_WIDGETS_NAVIGATION_BAR_H_
 #define QTCOMMON_CUSTOM_WIDGETS_NAVIGATION_BAR_H_
 
-#include <QAbstractButton>
 #include <QHBoxLayout>
+#include <QWidget>
 
 #include "icon_button.h"
 
-/// NavigationBar widget. Customized toolbar for browser navigation.
-class NavigationBar : public QAbstractButton
+/// @brief NavigationBar is a composite QWidget made of 2 icon buttons, meant to be used for navigation.
+class NavigationBar : public QWidget
 {
     Q_OBJECT
 
@@ -26,13 +26,6 @@ public:
     /// Virtual destructor
     virtual ~NavigationBar()
     {
-    }
-
-    /// Overridden paint event, which just does default painting.
-    /// \param event The paintEvent
-    virtual void paintEvent(QPaintEvent* event) Q_DECL_OVERRIDE
-    {
-        QWidget::paintEvent(event);
     }
 
     /// Accessor for the back button.
@@ -65,20 +58,13 @@ protected:
     /// \param event The mouseMoveEvent event.
     virtual void mouseMoveEvent(QMouseEvent* event) Q_DECL_OVERRIDE;
 
-private:
-    const QString kNavigationButtonStyle_ =
-        "IconButton {  margin: 0px; padding: 0px; border: none; background-color: rgb(51,51,51); background: rgb(51,51,51); color: #666; } ";
-
-    const QString kBrowseBackNormalResource_      = ":/Resources/assets/browse_back_normal.svg";
-    const QString kBrowseBackPressedResource_     = ":/Resources/assets/browse_back_pressed.svg";
-    const QString kBrowseBackDisabledResource_    = ":/Resources/assets/browse_back_disabled.svg";
-    const QString kBrowseForwardNormalResource_   = ":/Resources/assets/browse_fwd_normal.svg";
-    const QString kBrowseForwardPressedResource_  = ":/Resources/assets/browse_fwd_pressed.svg";
-    const QString kBrowseForwardDisabledresource_ = ":/Resources/assets/browse_fwd_disabled.svg";
-
     QHBoxLayout layout_;                 ///< The layout for the navigation bar.
     IconButton  browse_back_button_;     ///< The browse back navigation button.
     IconButton  browse_forward_button_;  ///< The browse forward navigation button.
+
+private:
+    const QString kNavigationButtonStyle_ =
+        "IconButton {  margin: 0px; padding: 0px; border: none; background-color: rgb(51,51,51); background: rgb(51,51,51); color: #666; } ";
 };
 
 #endif  // QTCOMMON_CUSTOM_WIDGETS_NAVIGATION_BAR_H_
