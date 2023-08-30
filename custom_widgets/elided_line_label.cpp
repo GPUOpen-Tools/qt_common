@@ -51,7 +51,8 @@ void ElidedLineLabel::UpdateToolTip()
     {
         // Force the tooltip to be rich text by adding the <font> tag.
         // This allows the tooltip rendering to word wrap the text.
-        QString rich_text = "<font>" + full_text_ + "</font>";
+        // Need to escape any html reserved characters to their entity names when converting to rich text.
+        QString rich_text = "<font>" + full_text_.toHtmlEscaped() + "</font>";
         setToolTip(rich_text);
     }
     else

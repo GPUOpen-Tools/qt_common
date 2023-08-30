@@ -16,7 +16,6 @@ class ScaledCheckBox : public QCheckBox
     Q_OBJECT
 
 public:
-
     /// Constructor which sets the parent of this object.
     /// \param parent The parent of this widget.
     ScaledCheckBox(QWidget* parent = nullptr);

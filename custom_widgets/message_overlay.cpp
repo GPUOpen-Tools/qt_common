@@ -1,5 +1,5 @@
 //=============================================================================
-// Copyright (c) 2021 Advanced Micro Devices, Inc. All rights reserved.
+// Copyright (c) 2021-2022 Advanced Micro Devices, Inc. All rights reserved.
 /// @author AMD Developer Tools Team
 /// @file
 /// @brief MessageOverlay class implementation
@@ -144,4 +144,66 @@ QDialogButtonBox::StandardButton MessageOverlay::Question(const QString&        
     }
 
     return QDialogButtonBox::StandardButton::NoButton;
+}
+
+// Async
+
+void MessageOverlay::CriticalAsync(const QString&                                        title,
+                                   const QString&                                        text,
+                                   QString                                               key,
+                                   std::function<void(QDialogButtonBox::StandardButton)> callback,
+                                   QDialogButtonBox::StandardButtons                     buttons,
+                                   QDialogButtonBox::StandardButton                      default_button)
+{
+    MessageOverlayContainer* container = MessageOverlayContainer::Get();
+    Q_ASSERT(container != nullptr);
+    if (container != nullptr)
+    {
+        container->ShowMessageOverlayAsync(title, text, buttons, default_button, MessageOverlay::Type::Error, key, callback);
+    }
+}
+
+void MessageOverlay::WarningAsync(const QString&                                        title,
+                                  const QString&                                        text,
+                                  QString                                               key,
+                                  std::function<void(QDialogButtonBox::StandardButton)> callback,
+                                  QDialogButtonBox::StandardButtons                     buttons,
+                                  QDialogButtonBox::StandardButton                      default_button)
+{
+    MessageOverlayContainer* container = MessageOverlayContainer::Get();
+    Q_ASSERT(container != nullptr);
+    if (container != nullptr)
+    {
+        container->ShowMessageOverlayAsync(title, text, buttons, default_button, MessageOverlay::Type::Warning, key, callback);
+    }
+}
+
+void MessageOverlay::InfoAsync(const QString&                                        title,
+                               const QString&                                        text,
+                               QString                                               key,
+                               std::function<void(QDialogButtonBox::StandardButton)> callback,
+                               QDialogButtonBox::StandardButtons                     buttons,
+                               QDialogButtonBox::StandardButton                      default_button)
+{
+    MessageOverlayContainer* container = MessageOverlayContainer::Get();
+    Q_ASSERT(container != nullptr);
+    if (container != nullptr)
+    {
+        container->ShowMessageOverlayAsync(title, text, buttons, default_button, MessageOverlay::Type::Info, key, callback);
+    }
+}
+
+void MessageOverlay::QuestionAsync(const QString&                                        title,
+                                   const QString&                                        text,
+                                   QString                                               key,
+                                   std::function<void(QDialogButtonBox::StandardButton)> callback,
+                                   QDialogButtonBox::StandardButtons                     buttons,
+                                   QDialogButtonBox::StandardButton                      default_button)
+{
+    MessageOverlayContainer* container = MessageOverlayContainer::Get();
+    Q_ASSERT(container != nullptr);
+    if (container != nullptr)
+    {
+        container->ShowMessageOverlayAsync(title, text, buttons, default_button, MessageOverlay::Type::Question, key, callback);
+    }
 }
