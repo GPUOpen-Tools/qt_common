@@ -1,14 +1,11 @@
 //=============================================================================
-// Copyright (c) 2022-2023 Advanced Micro Devices, Inc. All rights reserved.
+// Copyright (c) 2022-2024 Advanced Micro Devices, Inc. All rights reserved.
 /// @author AMD Developer Tools Team
 /// @file
 /// @brief Shared isa tree view implementation.
 //=============================================================================
 
 #include "shared_isa_tree_view.h"
-
-#include <algorithm>
-#include <utility>
 
 #include <QApplication>
 #include <QClipboard>
@@ -19,30 +16,57 @@
 #include <QMenu>
 #include <QScrollBar>
 #include <QSortFilterProxyModel>
-
-#include "shared_isa_item_delegate.h"
-#include "shared_isa_widget.h"
+#include <algorithm>
+#include <utility>
 
 #include "common_definitions.h"
 #include "qt_util.h"
+#include "shared_isa_item_delegate.h"
+#include "shared_isa_widget.h"
 
-/// @brief Compare function that sorts model indices by their position on screen.
-///
-/// @param lhs The left hand side model index.
-/// @param rhs The right hand side model index.
-///
-/// @return true if the left model index is les than the right model index, false otherwise.
-static bool CompareModelIndices(const std::pair<QRect, QModelIndex>& lhs, const std::pair<QRect, QModelIndex>& rhs)
+/// struct containing info needed to sort model indices.
+/// The y position is used for sorting the indices vertically by rows, and the visual column for sorting indices horizontally.
+/// If the index is a comment it needs to be placed before all other columns except for line number.
+struct CompareIndexInfo
 {
-    const QRect& lhs_rect = lhs.first;
-    const QRect& rhs_rect = rhs.first;
+    QModelIndex source_index;   ///< The source model index.
+    int         visual_column;  ///< The order that the index's column appears visually on the table.
+    int         y_pos;          ///< The y pixel coordinate of the index.
+};
 
-    if (lhs_rect.y() == rhs_rect.y())
+/// @brief Compare function that sorts model indices by y position and visual column index order.
+///
+/// Also makes sure comments always come before all other columns except for line number.
+///
+/// @param lhs The compare info for the left hand side index.
+/// @param rhs The compare info for the right hand side model index.
+///
+/// @return true if the left model index is less than the right model index, false otherwise.
+static bool CompareModelIndices(const CompareIndexInfo& lhs, const CompareIndexInfo& rhs)
+{
+    if (lhs.y_pos == rhs.y_pos)
     {
-        return lhs_rect.x() < rhs_rect.x();
+        const QModelIndex lhs_index = lhs.source_index;
+        const QModelIndex rhs_index = rhs.source_index;
+
+        // Put comments in the first row.
+        if (lhs_index.data(SharedIsaItemModel::kRowTypeRole).value<SharedIsaItemModel::RowType>() == SharedIsaItemModel::RowType::kComment)
+        {
+            // Put the opcode column before all other columns except for line number for comments rows.
+            if (lhs_index.column() == SharedIsaItemModel::Columns::kOpCode)
+            {
+                return rhs_index.column() != SharedIsaItemModel::Columns::kLineNumber;
+            }
+            else if (rhs_index.column() == SharedIsaItemModel::Columns::kOpCode)
+            {
+                return lhs_index.column() == SharedIsaItemModel::Columns::kLineNumber;
+            }
+        }
+
+        return lhs.visual_column < rhs.visual_column;
     }
 
-    return lhs_rect.y() < rhs_rect.y();
+    return lhs.y_pos < rhs.y_pos;
 }
 
 SharedIsaTreeView::SharedIsaTreeView(QWidget* parent)
@@ -50,6 +74,8 @@ SharedIsaTreeView::SharedIsaTreeView(QWidget* parent)
     , shared_isa_widget_(nullptr)
     , shared_isa_scroll_bar_(nullptr)
     , copy_line_numbers_(true)
+    , last_pinned_row_(std::pair<int, int>(-1, -1))
+    , paint_column_separators_(true)
 {
     setObjectName("isa_tree_view_");
 
@@ -310,6 +336,31 @@ void SharedIsaTreeView::drawRow(QPainter* painter, const QStyleOptionViewItem& o
 
     alternate_row = !alternate_row;
 
+    // Paint the column separators.
+    if (paint_column_separators_)
+    {
+        const QAbstractItemModel* proxy_model = index.model();
+
+        int column_x_pos = -horizontalScrollBar()->value();
+        for (int i = 0; i < proxy_model->columnCount(); i++)
+        {
+            QRect index_rect   = option.rect;
+            int   column_width = header()->sectionSize(header()->logicalIndex(i));
+
+            index_rect.setX(column_x_pos);
+            index_rect.setWidth(column_width);
+
+            painter->save();
+            auto pen = painter->pen();
+            pen.setColor(QtCommon::QtUtils::ColorTheme::Get().GetCurrentThemeColors().column_separator_color);
+            painter->setPen(pen);
+            painter->drawLine(index_rect.topRight(), index_rect.bottomRight());
+            painter->restore();
+
+            column_x_pos += column_width;
+        }
+    }
+
     // Paint the rest of the rows contents on top of the background.
     ScaledTreeView::drawRow(painter, option, index);
 }
@@ -334,41 +385,64 @@ void SharedIsaTreeView::keyPressEvent(QKeyEvent* event)
 
             QModelIndexList selection = selection_model->selectedIndexes();
 
-            std::vector<std::pair<QRect, QModelIndex>> view_sorted_selection;
+            std::vector<CompareIndexInfo> view_sorted_selection;
 
             std::map<int, int> column_max_widths;
 
-            for (const QModelIndex& source_index : selection)
+            for (const QModelIndex& index : selection)
             {
-                const QRect index_view_rectangle = visualRect(source_index);
+                CompareIndexInfo compare_index_info;
+                compare_index_info.source_index = index;
 
-                std::pair<QRect, QModelIndex> rect_index_pair(index_view_rectangle, source_index);
+                SharedIsaProxyModel* proxy_model = qobject_cast<SharedIsaProxyModel*>(model());
+                if (proxy_model != nullptr)
+                {
+                    compare_index_info.source_index = proxy_model->mapToSource(index);
+                }
 
-                const int column_index = source_index.column();
+                const int column_index = index.column();
 
-                // Check Whether line numbers should be included.
+                compare_index_info.visual_column = header()->visualIndex(column_index);
+                compare_index_info.y_pos         = visualRect(index).y();
+
+                // Check whether line numbers should be included.
                 if (column_index == SharedIsaItemModel::kLineNumber && !copy_line_numbers_)
                 {
                     continue;
                 }
 
-                view_sorted_selection.push_back(rect_index_pair);
+                view_sorted_selection.push_back(compare_index_info);
 
-                const QString text        = source_index.data(Qt::DisplayRole).toString();
-                const int     text_length = text.length();
-
-                if (column_max_widths.find(column_index) != column_max_widths.end())
+                // Ignore the column widths of comments and code blocks.
+                if (column_index != SharedIsaItemModel::kLineNumber && isFirstColumnSpanned(index.row(), index.parent()))
                 {
-                    const int old_max_width = column_max_widths.at(column_index);
+                    continue;
+                }
+
+                QString text = index.data(Qt::DisplayRole).toString();
+
+                // Indent opcodes.
+                if (compare_index_info.source_index.column() == SharedIsaItemModel::kOpCode && compare_index_info.source_index.parent().isValid() &&
+                    compare_index_info.source_index.data(SharedIsaItemModel::kRowTypeRole).value<SharedIsaItemModel::RowType>() ==
+                        SharedIsaItemModel::RowType::kCode)
+                {
+                    text = QString("    " + text);
+                }
+
+                const int text_length = text.length();
+
+                if (column_max_widths.find(compare_index_info.visual_column) != column_max_widths.end())
+                {
+                    const int old_max_width = column_max_widths.at(compare_index_info.visual_column);
 
                     if (text_length > old_max_width)
                     {
-                        column_max_widths[column_index] = text_length;
+                        column_max_widths[compare_index_info.visual_column] = text_length;
                     }
                 }
                 else
                 {
-                    column_max_widths[column_index] = text_length;
+                    column_max_widths[compare_index_info.visual_column] = text_length;
                 }
             }
 
@@ -376,21 +450,27 @@ void SharedIsaTreeView::keyPressEvent(QKeyEvent* event)
             // they are pasted in the same order that they appear on screen.
             std::sort(view_sorted_selection.begin(), view_sorted_selection.end(), CompareModelIndices);
 
-            int row = view_sorted_selection.front().first.y();
+            int y_pos = view_sorted_selection.front().y_pos;
 
-            for (const std::pair<QRect, QModelIndex>& pair : view_sorted_selection)
+            for (const CompareIndexInfo& compare_index_info : view_sorted_selection)
             {
-                QModelIndex source_index = pair.second;
-
-                if (pair.first.y() > row)
+                if (compare_index_info.y_pos > y_pos)
                 {
                     clipboard_text.append("\n");
-                    row = pair.first.y();
+                    y_pos = compare_index_info.y_pos;
                 }
 
-                const QString text = source_index.data(Qt::DisplayRole).toString();
+                QString text = compare_index_info.source_index.data(Qt::DisplayRole).toString();
 
-                QString formatted_text = QString("%1\t").arg(text, -column_max_widths[source_index.column()]);
+                // Indent opcodes.
+                if (compare_index_info.source_index.column() == SharedIsaItemModel::kOpCode && compare_index_info.source_index.parent().isValid() &&
+                    compare_index_info.source_index.data(SharedIsaItemModel::kRowTypeRole).value<SharedIsaItemModel::RowType>() ==
+                        SharedIsaItemModel::RowType::kCode)
+                {
+                    text = QString("    " + text);
+                }
+
+                QString formatted_text = QString("%1\t").arg(text, -column_max_widths[compare_index_info.visual_column]);
 
                 clipboard_text.append(formatted_text);
                 clipboard_text.append(" ");
@@ -440,8 +520,25 @@ void SharedIsaTreeView::ScrollBarScrolled(int value)
 
     QAbstractItemModel* model        = this->model();
     const QModelIndex   top_left     = indexAt(QPoint(0, 0));
-    const QModelIndex   bottom_right = indexAt(QPoint(viewport()->width() - 1, 0));
+    const QModelIndex   bottom_right = indexAt(QPoint(viewport()->width() - 1, viewport()->height() - 1));
 
-    // Notify the model/view/controller to refresh the row at the top of the view.
+    const QModelIndex last_pinned_parent_index = model->index(last_pinned_row_.first, 0, QModelIndex());
+    const QModelIndex last_pinned_index        = model->index(last_pinned_row_.second, 0, last_pinned_parent_index);
+
+    if (last_pinned_index.isValid() && last_pinned_index.model() == model)
+    {
+        setFirstColumnSpanned(last_pinned_index.row(), last_pinned_index.parent(), false);
+    }
+    if (!isFirstColumnSpanned(top_left.row(), top_left.parent()))
+    {
+        setFirstColumnSpanned(top_left.row(), top_left.parent(), true);
+        last_pinned_row_ = std::pair<int, int>(top_left.parent().row(), top_left.row());
+    }
+    else
+    {
+        ClearLastPinnedndex();
+    }
+
+    // Notify the model/view/controller to refresh all visible rows.
     emit model->dataChanged(top_left, bottom_right, roles);
 }

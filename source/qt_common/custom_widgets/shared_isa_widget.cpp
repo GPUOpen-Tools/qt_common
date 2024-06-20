@@ -1,5 +1,5 @@
 //=============================================================================
-// Copyright (c) 2022-2023 Advanced Micro Devices, Inc. All rights reserved.
+// Copyright (c) 2022-2024 Advanced Micro Devices, Inc. All rights reserved.
 /// @author AMD Developer Tools Team
 /// @file
 /// @brief Shared isa widget implementation.
@@ -254,6 +254,39 @@ void SharedIsaWidget::RestoreExpandState(ExpandCollapseState expand_collapse_sta
     connect(ui_->isa_tree_view_, &QTreeView::expanded, this, &SharedIsaWidget::RefreshSearchMatchLineNumbers);
 }
 
+void SharedIsaWidget::UpdateSpannedColumns()
+{
+    const QAbstractItemModel* source_model = proxy_model_->sourceModel();
+
+    for (int i = 0; i < source_model->rowCount(); i++)
+    {
+        const int proxy_row = proxy_model_->mapFromSource(source_model->index(i, SharedIsaItemModel::kOpCode)).row();
+
+        // All parent labels (code blocks or comments) should span across columns.
+        ui_->isa_tree_view_->setFirstColumnSpanned(proxy_row, QModelIndex(), true);
+
+        const QModelIndex source_parent_index = source_model->index(i, SharedIsaItemModel::kLineNumber);
+
+        for (int j = 0; j < source_model->rowCount(source_parent_index); j++)
+        {
+            QModelIndex source_child_index = source_model->index(j, SharedIsaItemModel::kOpCode, source_parent_index);
+            const auto  row_type           = qvariant_cast<SharedIsaItemModel::RowType>(source_child_index.data(SharedIsaItemModel::kRowTypeRole));
+            bool        spanned            = false;
+
+            if (row_type == SharedIsaItemModel::RowType::kComment)
+            {
+                spanned = true;
+            }
+
+            const int proxy_child_row = proxy_model_->mapFromSource(source_child_index).row();
+
+            // Child comments should span across columns.
+            ui_->isa_tree_view_->setFirstColumnSpanned(proxy_child_row, proxy_model_->mapFromSource(source_parent_index), spanned);
+        }
+    }
+    ui_->isa_tree_view_->ClearLastPinnedndex();
+}
+
 void SharedIsaWidget::ClearHistory()
 {
     ui_->branch_label_navigation_->ClearHistory();
@@ -392,11 +425,11 @@ void SharedIsaWidget::ShowHideColumnClicked(bool checked)
 
     if (source_column_index != SharedIsaItemModel::kColumnCount)
     {
-        int proxy_index = proxy_model_->mapFromSource(proxy_model_->sourceModel()->index(0, source_column_index)).column();
+        int proxy_index  = proxy_model_->mapFromSource(proxy_model_->sourceModel()->index(0, source_column_index)).column();
         int visual_index = header->visualIndex(proxy_index);
 
         proxy_model_->SetColumnVisibility(source_column_index, checked, header);
-        
+
         if (checked)
         {
             ui_->isa_tree_view_->resizeColumnToContents(proxy_model_->mapFromSource(proxy_model_->sourceModel()->index(0, source_column_index)).column());
@@ -406,7 +439,7 @@ void SharedIsaWidget::ShowHideColumnClicked(bool checked)
             // If the last column was just removed, resize the column with the next logical index to prevent a bug where it gets too large.
             if (visual_index == proxy_model_->columnCount())
             {
-                // Check if there was a next logical index. 
+                // Check if there was a next logical index.
                 if (header->visualIndex(proxy_index) != -1)
                 {
                     ui_->isa_tree_view_->resizeColumnToContents(proxy_index);

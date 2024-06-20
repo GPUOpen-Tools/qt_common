@@ -7,6 +7,7 @@ Language: Cpp
 AccessModifierOffset: -4
 BreakBeforeBraces: Custom
 BraceWrapping:
+  AfterCaseLabel: true
   AfterClass: true
   AfterControlStatement: true
   AfterEnum: true
@@ -37,7 +38,8 @@ AllowShortIfStatementsOnASingleLine: false
 AllowShortLoopsOnASingleLine: false
 AllowShortBlocksOnASingleLine: false
 ReflowComments: false
-SortIncludes: false
+SortIncludes: true
+IncludeBlocks: Preserve
 SortUsingDeclarations: false
 BinPackArguments: false
 BinPackParameters: false

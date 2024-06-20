@@ -20,6 +20,8 @@
 /// It filters out SharedIsaItemModel columns set to be invisible via the gui.
 class SharedIsaProxyModel : public QSortFilterProxyModel
 {
+    Q_OBJECT
+
 public:
     /// @brief Constructor; default all columns to visible.
     ///

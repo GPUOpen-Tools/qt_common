@@ -1,15 +1,11 @@
 //=============================================================================
-// Copyright (c) 2022-2023 Advanced Micro Devices, Inc. All rights reserved.
+// Copyright (c) 2022-2024 Advanced Micro Devices, Inc. All rights reserved.
 /// @author AMD Developer Tools Team
 /// @file
 /// @brief Implementation for a shared isa item model.
 //=============================================================================
 
 #include "shared_isa_item_model.h"
-
-#include "qt_common/utils/shared_isa_dictionary.h"
-#include "qt_common/utils/qt_util.h"
-#include "qt_common/utils/common_definitions.h"
 
 #include <algorithm>
 
@@ -18,13 +14,25 @@
 #include <QFontMetrics>
 #include <QStringList>
 
-const QString SharedIsaItemModel::kColumnPadding      = " ";      // Pad columns by 1 character.
-const QString SharedIsaItemModel::kOpCodeColumnIndent = "     ";  // Indent op code column by 5 characters.
-const QString SharedIsaItemModel::kOperandDelimiter   = ", ";     // Separate operands by a comma and a space.
+#include "qt_common/utils/common_definitions.h"
+#include "qt_common/utils/qt_util.h"
+#include "qt_common/utils/shared_isa_dictionary.h"
+
+const QString     SharedIsaItemModel::kColumnPadding             = " ";           // Pad columns by 1 character.
+const QString     SharedIsaItemModel::kOpCodeColumnIndent        = "     ";       // Indent op code column by 5 characters.
+const QString     SharedIsaItemModel::kOperandTokenSpace         = " ";           // Separate tokens within the same operand.
+const QString     SharedIsaItemModel::kOperandDelimiter          = ", ";          // Separate operands by a comma and a space.
+const std::string SharedIsaItemModel::kUnconditionalBranchString = "s_branch";    // Branch op code text.
+const std::string SharedIsaItemModel::kConditionalBranchString   = "s_cbranch_";  // Conditional branch op code text.
+
+// Avoid repetitive string conversions.
+const std::string kOperandTokenSpaceStdString = SharedIsaItemModel::kOperandTokenSpace.toStdString();
+const std::string kOperandDelimiterStdString  = SharedIsaItemModel::kOperandDelimiter.toStdString();
 
 SharedIsaItemModel::SharedIsaItemModel(QObject* parent)
     : QAbstractItemModel(parent)
     , fixed_font_character_width_(0)
+    , line_numbers_visible_(true)
 {
 }
 
@@ -51,13 +59,13 @@ int SharedIsaItemModel::rowCount(const QModelIndex& parent) const
     if (!parent.isValid())
     {
         // The number of top-level nodes is the number of code blocks.
-        return static_cast<int>(code_blocks_.size());
+        return static_cast<int>(blocks_.size());
     }
 
     if (!parent.parent().isValid())
     {
         // The number of rows underneath a Code Block is the number of instructions in that Code Block.
-        return static_cast<int>(code_blocks_.at(parent.row()).instruction_lines.size());
+        return static_cast<int>(blocks_.at(parent.row())->instruction_lines.size());
     }
 
     // Instructions should not have any rows underneath them.
@@ -80,7 +88,7 @@ QModelIndex SharedIsaItemModel::index(int row, int column, const QModelIndex& pa
     }
 
     // Individual instruction lines are child nodes; attach parent row index as internal data.
-    return createIndex(row, column, (void*)&code_blocks_[parent.row()]);
+    return createIndex(row, column, (void*)blocks_[parent.row()].get());
 }
 
 QModelIndex SharedIsaItemModel::parent(const QModelIndex& index) const
@@ -90,7 +98,7 @@ QModelIndex SharedIsaItemModel::parent(const QModelIndex& index) const
         return QModelIndex();
     }
 
-    const CodeBlock* code_block = static_cast<CodeBlock*>(index.internalPointer());
+    const InstructionBlock* code_block = static_cast<InstructionBlock*>(index.internalPointer());
 
     if (code_block != nullptr)
     {
@@ -120,11 +128,13 @@ QVariant SharedIsaItemModel::data(const QModelIndex& index, int role) const
 
     switch (role)
     {
-    case Qt::FontRole: {
+    case Qt::FontRole:
+    {
         data.setValue(fixed_font_);
         break;
     }
-    case Qt::TextAlignmentRole: {
+    case Qt::TextAlignmentRole:
+    {
         int alignment_flags = 0;
 
         if (index.column() == kLineNumber)
@@ -139,7 +149,8 @@ QVariant SharedIsaItemModel::data(const QModelIndex& index, int role) const
         data.setValue(alignment_flags);
         break;
     }
-    case Qt::ForegroundRole: {
+    case Qt::ForegroundRole:
+    {
         // This role is not useful for columns with multi-coloring in the same column.
 
         // Default to color theme's text color.
@@ -149,9 +160,9 @@ QVariant SharedIsaItemModel::data(const QModelIndex& index, int role) const
         {
             // Provide a different starting color for code block comments and code block labels with matching branching instructions.
 
-            const auto& code_block = code_blocks_.at(index.row());
-            
-            if (code_block.row_type == RowType::kComment)
+            const auto block = blocks_.at(index.row());
+
+            if (block->row_type == RowType::kComment)
             {
                 QColor comment_color;
                 if (QtCommon::QtUtils::ColorTheme::Get().GetColorTheme() == kColorThemeTypeLight)
@@ -166,78 +177,142 @@ QVariant SharedIsaItemModel::data(const QModelIndex& index, int role) const
                 // This is a code block comment; provide light blue as its text color.
                 data.setValue(comment_color);
             }
-            else if (code_block.row_type == RowType::kCodeBlock && !code_block.mapped_branch_instructions.empty())
+            else if (block->row_type == RowType::kCode)
             {
-                QColor label_color;
+                const auto code_block = std::static_pointer_cast<InstructionBlock>(block);
+
+                if (!code_block->mapped_branch_instructions.empty())
+                {
+                    // This is a code block label that is called by a branch instruction(s); provide purple as its text color.
+                    QColor label_color;
+
+                    if (QtCommon::QtUtils::ColorTheme::Get().GetColorTheme() == kColorThemeTypeLight)
+                    {
+                        label_color = QtCommon::QtUtils::kIsaLightThemeColorDarkMagenta;
+                    }
+                    else
+                    {
+                        label_color = QtCommon::QtUtils::kIsaDarkThemeColorDarkMagenta;
+                    }
+
+                    data.setValue(label_color);
+                }
+            }
+        }
+        else if (index.parent().isValid() && index.column() != kLineNumber)
+        {
+            // Provide a different starting color for child row comments
+
+            const auto row = blocks_.at(index.parent().row())->instruction_lines.at(index.row());
+
+            if (row->row_type == RowType::kComment)
+            {
+                QColor comment_color;
+
                 if (QtCommon::QtUtils::ColorTheme::Get().GetColorTheme() == kColorThemeTypeLight)
                 {
-                    label_color = QtCommon::QtUtils::kIsaLightThemeColorDarkMagenta;
+                    comment_color = QtCommon::QtUtils::kIsaLightThemeColorLightBlue;
                 }
                 else
                 {
-                    label_color = QtCommon::QtUtils::kIsaDarkThemeColorDarkMagenta;
+                    comment_color = QtCommon::QtUtils::kIsaDarkThemeColorLightBlue;
                 }
 
-                // This is a code block label that is called by a branch instruction(s); provide purple as its text color.
-                data.setValue(label_color);
+                data.setValue(comment_color);
             }
         }
 
         break;
     }
-    case Qt::DisplayRole: {
+    case Qt::DisplayRole:
+    {
         const QModelIndex parent_index = index.parent();
 
         switch (index.column())
         {
-        case kLineNumber: {
+        case kLineNumber:
+        {
             int line_number = 0;
 
             if (!parent_index.isValid())
             {
                 // Code block.
-                line_number = code_blocks_.at(index.row()).line_number;
+                line_number = blocks_.at(index.row())->line_number;
             }
             else
             {
                 // Instruction line.
-                line_number = code_blocks_.at(parent_index.row()).instruction_lines.at(index.row()).line_number;
+                line_number = blocks_.at(parent_index.row())->instruction_lines.at(index.row())->line_number;
             }
 
             data.setValue(line_number);
             break;
         }
-        case kOpCode: {
+        case kOpCode:
+        {
             if (!index.parent().isValid())
             {
-                // Code block.
-                data.setValue(QString(code_blocks_.at(index.row()).token.token_text.c_str()));
+                const auto block = blocks_.at(index.row());
+
+                if (block->row_type == RowType::kComment)
+                {
+                    const auto comment_block = std::static_pointer_cast<CommentBlock>(block);
+
+                    data.setValue(QString(comment_block->text.c_str()));
+                }
+                else if (block->row_type == RowType::kCode)
+                {
+                    const auto code_block = std::static_pointer_cast<InstructionBlock>(block);
+
+                    data.setValue(QString(code_block->token.token_text.c_str()));
+                }
             }
-            else if ((code_blocks_.at(index.parent().row()).instruction_lines.at(index.row()).row_type == RowType::kInstruction) ||
-                     (code_blocks_.at(index.parent().row()).instruction_lines.at(index.row()).row_type == RowType::kComment))
+            else
             {
-                // Instruction line.
-                data.setValue(QString(code_blocks_.at(index.parent().row()).instruction_lines.at(index.row()).op_code.c_str()));
+                const auto row = blocks_.at(index.parent().row())->instruction_lines.at(index.row());
+
+                if (row->row_type == RowType::kCode)
+                {
+                    const auto instruction = std::static_pointer_cast<InstructionRow>(row);
+
+                    data.setValue(QString(instruction->op_code_token.token_text.c_str()));
+                }
+                else if (row->row_type == RowType::kComment)
+                {
+                    const auto comment = std::static_pointer_cast<CommentRow>(row);
+
+                    data.setValue(QString(comment->text.c_str()));
+                }
             }
+
             break;
         }
-        case kOperands: {
-            if (index.parent().isValid() && (code_blocks_.at(index.parent().row()).instruction_lines.at(index.row()).row_type == RowType::kInstruction))
+        case kOperands:
+        {
+            if (index.parent().isValid() && (blocks_.at(index.parent().row())->instruction_lines.at(index.row())->row_type == RowType::kCode))
             {
-                std::string                     operands_string = "";
-                const std::vector<std::string>& operands        = code_blocks_.at(index.parent().row()).instruction_lines.at(index.row()).operands;
+                const auto  instruction = std::static_pointer_cast<InstructionRow>(blocks_.at(index.parent().row())->instruction_lines.at(index.row()));
+                const auto& operand_token_groups = instruction->operand_tokens;
+                std::string operands_string      = "";
 
-                if (!operands.empty())
+                for (size_t i = 0; i < operand_token_groups.size(); i++)
                 {
-                    for (size_t i = 0; i < operands.size(); i++)
+                    const auto& operand_token_group = operand_token_groups.at(i);
+
+                    for (size_t j = 0; j < operand_token_group.size(); j++)
                     {
-                        const std::string& arg = operands[i];
+                        const std::string& arg = operand_token_group[j].token_text;
                         operands_string += arg;
 
-                        if (i != operands.size() - 1)
+                        if (j != operand_token_group.size() - 1)
                         {
-                            operands_string += kOperandDelimiter.toStdString();
+                            operands_string += kOperandTokenSpaceStdString;
                         }
+                    }
+
+                    if (i != operand_token_groups.size() - 1)
+                    {
+                        operands_string += kOperandDelimiterStdString;
                     }
                 }
 
@@ -245,93 +320,125 @@ QVariant SharedIsaItemModel::data(const QModelIndex& index, int role) const
             }
             break;
         }
-        case kPcAddress: {
-            if (index.parent().isValid() && (code_blocks_.at(index.parent().row()).instruction_lines.at(index.row()).row_type == RowType::kInstruction))
+        case kPcAddress:
+        {
+            if (index.parent().isValid() && (blocks_.at(index.parent().row())->instruction_lines.at(index.row())->row_type == RowType::kCode))
             {
                 // Instruction line.
-                data.setValue(QString(code_blocks_.at(index.parent().row()).instruction_lines.at(index.row()).pc_address.c_str()));
+
+                const auto instruction = std::static_pointer_cast<InstructionRow>(blocks_.at(index.parent().row())->instruction_lines.at(index.row()));
+
+                data.setValue(QString(instruction->pc_address.c_str()));
             }
 
             break;
         }
-        case kBinaryRepresentation: {
-            if (index.parent().isValid() && (code_blocks_.at(index.parent().row()).instruction_lines.at(index.row()).row_type == RowType::kInstruction))
+        case kBinaryRepresentation:
+        {
+            if (index.parent().isValid() && (blocks_.at(index.parent().row())->instruction_lines.at(index.row())->row_type == RowType::kCode))
             {
                 // Instruction line.
-                data.setValue(QString(code_blocks_.at(index.parent().row()).instruction_lines.at(index.row()).binary_representation.c_str()));
+
+                const auto instruction = std::static_pointer_cast<InstructionRow>(blocks_.at(index.parent().row())->instruction_lines.at(index.row()));
+
+                data.setValue(QString(instruction->binary_representation.c_str()));
             }
 
             break;
         }
-        default: {
+        default:
+        {
             break;
         }
         }
         break;
     }
-    case Qt::UserRole: {
-        // Use UserRole to store Tokens.
+    case Qt::UserRole:
+    {
+        // Use UserRole to store data needed for delegates to custom paint instruction rows.
+        //
+        // Store tokens for instructions.
+        // Store nothing for comments.
 
         if (!index.parent().isValid())
         {
             std::vector<Token> tokens;
 
-            tokens.push_back(code_blocks_.at(index.row()).token);
+            const auto block = blocks_.at(index.row());
+
+            if (block->row_type == RowType::kCode)
+            {
+                const auto code_block = std::static_pointer_cast<InstructionBlock>(block);
+
+                tokens.push_back(code_block->token);
+            }
 
             data.setValue(tokens);
         }
         else
         {
-            if (index.column() == kOpCode)
-            {
-                const auto& instruction_line = code_blocks_.at(index.parent().row()).instruction_lines.at(index.row());
+            const auto row = blocks_.at(index.parent().row())->instruction_lines.at(index.row());
 
-                if (instruction_line.row_type == RowType::kInstruction || instruction_line.row_type == RowType::kComment)
+            if (row->row_type == RowType::kCode)
+            {
+                const auto instruction = std::static_pointer_cast<InstructionRow>(row);
+
+                if ((index.column() == kOpCode))
                 {
                     std::vector<Token> tokens;
 
-                    tokens.push_back(instruction_line.op_code_token);
+                    tokens.push_back(instruction->op_code_token);
 
                     data.setValue(tokens);
                 }
-            }
-            else if (index.column() == kOperands)
-            {
-                const auto& instruction_line = code_blocks_.at(index.parent().row()).instruction_lines.at(index.row());
-
-                if (instruction_line.row_type == RowType::kInstruction)
+                else if ((index.column() == kOperands))
                 {
-                    data.setValue(instruction_line.operand_tokens);
+                    data.setValue(instruction->operand_tokens);
                 }
             }
         }
 
         break;
     }
-    case kLabelBranchRole: {
+    case kLabelBranchRole:
+    {
         bool is_code_block_label_branch_target = false;
 
         if (!index.parent().isValid())
         {
-            is_code_block_label_branch_target = !code_blocks_.at(index.row()).mapped_branch_instructions.empty();
+            const auto block = blocks_.at(index.row());
+
+            if (block->row_type == RowType::kCode)
+            {
+                const auto code_block             = std::static_pointer_cast<InstructionBlock>(block);
+                is_code_block_label_branch_target = !code_block->mapped_branch_instructions.empty();
+            }
         }
 
         data.setValue(is_code_block_label_branch_target);
         break;
     }
-    case kBranchIndexRole: {
+    case kBranchIndexRole:
+    {
         QVector<QModelIndex> branch_label_indices;
 
         if (index.column() == kOpCode)
         {
             if (!index.parent().isValid())
             {
-                for (const auto& mapped_branch_instruction : code_blocks_.at(index.row()).mapped_branch_instructions)
+                const auto block = blocks_.at(index.row());
+
+                if (block->row_type == RowType::kCode)
                 {
-                    const int         label_code_block_index  = mapped_branch_instruction.first;
-                    const int         label_instruction_index = mapped_branch_instruction.second;
-                    const QModelIndex branch_label_index      = this->index(label_instruction_index, 0, this->index(label_code_block_index, 0));
-                    branch_label_indices.push_back(branch_label_index);
+                    const auto code_block = std::static_pointer_cast<InstructionBlock>(block);
+
+                    for (const auto& mapped_branch_instruction : code_block->mapped_branch_instructions)
+                    {
+                        const int         label_code_block_index  = mapped_branch_instruction.first;
+                        const int         label_instruction_index = mapped_branch_instruction.second;
+                        const QModelIndex branch_label_index      = this->index(label_instruction_index, 0, this->index(label_code_block_index, 0));
+                        branch_label_indices.push_back(branch_label_index);
+                    }
                 }
             }
         }
@@ -339,19 +446,25 @@ QVariant SharedIsaItemModel::data(const QModelIndex& index, int role) const
         {
             if (index.parent().isValid())
             {
-                const auto& instruction_line = code_blocks_.at(index.parent().row()).instruction_lines.at(index.row());
-                const auto& operand_tokens   = instruction_line.operand_tokens;
+                // Instruction line.
 
-                if (!operand_tokens.empty() && !operand_tokens.front().empty())
+                const auto row = blocks_.at(index.parent().row())->instruction_lines.at(index.row());
+
+                if (row->row_type == RowType::kCode)
                 {
-                    // Check the first token in the first operand.
+                    const auto instruction = std::static_pointer_cast<const InstructionRow>(row);
 
-                    const auto& token = instruction_line.operand_tokens.front().front();
-
-                    if (token.type == TokenType::kBranchLabelType && token.start_register_index != -1)
+                    if (!instruction->operand_tokens.empty() && !instruction->operand_tokens.front().empty())
                     {
-                        const QModelIndex label_index = this->index(token.start_register_index, 0);
-                        branch_label_indices.push_back(label_index);
+                        // Check the first token in the first operand.
+
+                        const auto& token = instruction->operand_tokens.front().front();
+
+                        if (token.type == TokenType::kBranchLabelType && token.start_register_index != -1)
+                        {
+                            const QModelIndex label_index = this->index(token.start_register_index, 0);
+                            branch_label_indices.push_back(label_index);
+                        }
                     }
                 }
             }
@@ -360,18 +473,44 @@ QVariant SharedIsaItemModel::data(const QModelIndex& index, int role) const
         data.setValue(branch_label_indices);
         break;
     }
-    case kLineEnabledRole: {
+    case kLineEnabledRole:
+    {
         bool line_enabled = true;
 
         if (index.parent().isValid())
         {
-            line_enabled = code_blocks_.at(index.parent().row()).instruction_lines.at(index.row()).enabled;
+            const auto row = blocks_.at(index.parent().row())->instruction_lines.at(index.row());
+
+            if (row->row_type == RowType::kCode)
+            {
+                const auto instruction = std::static_pointer_cast<InstructionRow>(row);
+                line_enabled           = instruction->enabled;
+            }
         }
 
         data.setValue(line_enabled);
         break;
     }
-    default: {
+    case kRowTypeRole:
+    {
+        RowType row_type = RowType::kRowCount;
+
+        if (!index.parent().isValid())
+        {
+            const auto block = blocks_.at(index.row());
+            row_type         = block->row_type;
+        }
+        else
+        {
+            const auto row = blocks_.at(index.parent().row())->instruction_lines.at(index.row());
+            row_type       = row->row_type;
+        }
+
+        data.setValue(row_type);
+        break;
+    }
+    default:
+    {
         break;
     }
     }
@@ -389,68 +528,77 @@ void SharedIsaItemModel::CacheSizeHints()
     uint32_t max_operand_length               = 0;
     uint32_t max_binary_representation_length = 0;
 
-    if (code_blocks_.empty())
+    if (blocks_.empty())
     {
         return;
     }
 
     int code_block_index = 0;
 
-    for (auto& code_block : code_blocks_)
+    for (auto& code_block : blocks_)
     {
         line_number_corresponding_indices_.emplace_back(-1, code_block_index);
 
         int instruction_index = 0;
 
-        for (auto& instruction : code_block.instruction_lines)
+        for (auto instruction : code_block->instruction_lines)
         {
-            // Instructions.
-
             line_number_corresponding_indices_.emplace_back(code_block_index, instruction_index++);
 
-            if (instruction.row_type == RowType::kComment)
+            if (instruction->row_type == RowType::kComment)
             {
                 // Don't force comments to fit in the op code column.
                 continue;
             }
 
-            max_op_code_length    = std::max(max_op_code_length, static_cast<uint32_t>(instruction.op_code.length()));
-            max_pc_address_length = std::max(max_pc_address_length, static_cast<uint32_t>(instruction.pc_address.length()));
+            const auto instruction_line = std::static_pointer_cast<InstructionRow>(instruction);
+
+            max_op_code_length    = std::max(max_op_code_length, static_cast<uint32_t>(instruction_line->op_code_token.token_text.size()));
+            max_pc_address_length = std::max(max_pc_address_length, static_cast<uint32_t>(instruction_line->pc_address.length()));
 
             std::string operands;
 
-            for (const auto& operand : instruction.operands)
+            const auto number_operand_groups = instruction_line->operand_tokens.size();
+
+            for (size_t i = 0; i < number_operand_groups; i++)
             {
-                operands += operand;
-                operands += kOperandDelimiter.toStdString();
+                const auto& operand_group            = instruction_line->operand_tokens.at(i);
+                const auto  number_operands_in_group = operand_group.size();
+
+                for (size_t j = 0; j < number_operands_in_group; j++)
+                {
+                    const auto& operand = operand_group.at(j);
+
+                    operands += operand.token_text;
+
+                    if (j < number_operands_in_group - 1)
+                    {
+                        operands += kOperandTokenSpaceStdString;
+                    }
+                }
+
+                if (i < number_operand_groups - 1)
+                {
+                    operands += kOperandDelimiterStdString;
+                }
             }
 
-            max_operand_length               = std::max(max_operand_length, static_cast<uint32_t>(operands.size()));
-            max_binary_representation_length = std::max(max_binary_representation_length, static_cast<uint32_t>(instruction.binary_representation.size()));
+            max_operand_length = std::max(max_operand_length, static_cast<uint32_t>(operands.size()));
+            max_binary_representation_length =
+                std::max(max_binary_representation_length, static_cast<uint32_t>(instruction_line->binary_representation.size()));
         }
 
         code_block_index++;
     }
 
-    const QFontMetrics metrics = QFontMetrics(fixed_font_);
+    const int line_number_text_length = QString(QString::number(blocks_.back()->instruction_lines.back()->line_number) + kColumnPadding).size();
+    max_op_code_length += kOpCodeColumnIndent.size();
 
-    QString line_number_text;
-
-    if (!code_blocks_.back().instruction_lines.empty())
-    {
-        line_number_text = QString::number(code_blocks_.back().instruction_lines.back().line_number) + kColumnPadding;
-    }
-
-    const QString pc_address_text(max_pc_address_length, ' ');
-    const QString op_code_text = QString(max_op_code_length, ' ') + kOpCodeColumnIndent;
-    const QString operand_text(max_operand_length, ' ');
-    const QString binary_representation_text(max_binary_representation_length, ' ');
-
-    const auto line_number_length           = metrics.horizontalAdvance(line_number_text);
-    const auto pc_address_length            = metrics.horizontalAdvance(pc_address_text);
-    const auto op_code_length               = metrics.horizontalAdvance(op_code_text);
-    const auto operand_length               = metrics.horizontalAdvance(operand_text);
-    const auto binary_representation_length = metrics.horizontalAdvance(binary_representation_text);
+    const auto line_number_length           = line_number_text_length * fixed_font_character_width_;
+    const auto pc_address_length            = max_pc_address_length * fixed_font_character_width_;
+    const auto op_code_length               = max_op_code_length * fixed_font_character_width_;
+    const auto operand_length               = max_operand_length * fixed_font_character_width_;
+    const auto binary_representation_length = max_binary_representation_length * fixed_font_character_width_;
 
     column_widths_[kLineNumber]           = line_number_length;
     column_widths_[kPcAddress]            = pc_address_length;
@@ -499,33 +647,159 @@ QModelIndex SharedIsaItemModel::GetLineNumberModelIndex(int line_number)
     return index(child_row, 0, parent_index);
 }
 
+void SharedIsaItemModel::ClearBranchInstructionMapping()
+{
+    for (auto block : blocks_)
+    {
+        if (block->row_type != RowType::kCode)
+        {
+            continue;
+        }
+
+        auto code_block = std::static_pointer_cast<InstructionBlock>(block);
+
+        code_block->mapped_branch_instructions.clear();
+    }
+}
+
 void SharedIsaItemModel::MapBlocksToBranchInstructions()
 {
-    if (code_blocks_.empty())
+    if (blocks_.empty())
     {
         return;
     }
 
-    for (auto& outer_block : code_blocks_)
+    ClearBranchInstructionMapping();
+
+    code_block_label_to_index_.clear();
+
+    // Build map of code block label -> code block index.
+
+    for (size_t block_index = 0; block_index < blocks_.size(); block_index++)
     {
-        for (auto& inner_block : code_blocks_)
+        const auto block = blocks_.at(block_index);
+
+        if (block->row_type != RowType::kCode)
         {
-            int instruction_index = 0;
+            continue;
+        }
 
-            for (auto& inner_block_instruction : inner_block.instruction_lines)
+        const auto code_block                                    = std::static_pointer_cast<const InstructionBlock>(block);
+        code_block_label_to_index_[code_block->token.token_text] = code_block->position;
+    }
+
+    // Use map to assign block's their corresponding branch instructions and vice versa.
+
+    for (size_t block_index = 0; block_index < blocks_.size(); block_index++)
+    {
+        const auto block = blocks_.at(block_index);
+
+        if (block->row_type != RowType::kCode)
+        {
+            continue;
+        }
+
+        const auto code_block = std::static_pointer_cast<InstructionBlock>(block);
+
+        for (size_t instruction_index = 0; instruction_index < code_block->instruction_lines.size(); instruction_index++)
+        {
+            const auto row = code_block->instruction_lines.at(instruction_index);
+
+            if (row->row_type != RowType::kCode)
             {
-                for (const auto& operand_string : inner_block_instruction.operands)
+                continue;
+            }
+
+            auto       instruction  = std::static_pointer_cast<InstructionRow>(row);
+            const auto op_code_text = instruction->op_code_token.token_text;
+            const bool is_branch =
+                ((op_code_text.find(kUnconditionalBranchString) != std::string::npos) || (op_code_text.find(kConditionalBranchString) != std::string::npos));
+
+            if (is_branch && (!instruction->operand_tokens.empty()) && (!instruction->operand_tokens.front().empty()))
+            {
+                // Assume branch target is first operand of first operand group.
+
+                const auto map_iter = code_block_label_to_index_.find(instruction->operand_tokens.front().front().token_text);
+
+                if (map_iter != code_block_label_to_index_.end())
                 {
-                    if (operand_string == outer_block.token.token_text)
-                    {
-                        outer_block.mapped_branch_instructions.emplace_back(std::make_pair(inner_block.position, instruction_index));
+                    const auto branch_target_block_index = map_iter->second;
+                    const auto branch_target_block       = blocks_.at(branch_target_block_index);
+                    auto       branch_target_code_block = std::static_pointer_cast<SharedIsaItemModel::InstructionBlock>(blocks_.at(branch_target_block_index));
 
-                        inner_block_instruction.operand_tokens.front().front().start_register_index = outer_block.position;
-                    }
+                    // Code block remembers which branch instruction targeted it.
+                    branch_target_code_block->mapped_branch_instructions.emplace_back(std::make_pair(block_index, instruction_index));
+
+                    // Branch instruction remembers which code block is its target.
+                    instruction->operand_tokens.front().front().start_register_index = branch_target_block_index;
                 }
-
-                instruction_index++;
             }
         }
     }
+
+    code_block_label_to_index_.clear();
+}
+
+SharedIsaItemModel::Row::Row(RowType type, uint32_t line)
+    : row_type(type)
+    , line_number(line)
+{
+}
+
+SharedIsaItemModel::Row::~Row()
+{
+}
+
+SharedIsaItemModel::CommentRow::CommentRow(uint32_t line, std::string comment)
+    : Row(RowType::kComment, line)
+    , text(comment)
+{
+}
+
+SharedIsaItemModel::CommentRow::~CommentRow()
+{
+}
+
+SharedIsaItemModel::InstructionRow::InstructionRow(uint32_t line, std::string op, std::string address, std::string representation)
+    : Row(RowType::kCode, line)
+    , pc_address(address)
+    , binary_representation(representation)
+    , enabled(true)
+{
+    op_code_token.token_text = op;
+}
+
+SharedIsaItemModel::InstructionRow::~InstructionRow()
+{
+}
+
+SharedIsaItemModel::Block::Block(RowType type, int block_position, uint32_t shader_line_number)
+    : row_type(type)
+    , position(block_position)
+    , line_number(shader_line_number)
+{
+}
+
+SharedIsaItemModel::Block::~Block()
+{
+}
+
+SharedIsaItemModel::CommentBlock::CommentBlock(int block_position, uint32_t shader_line_number, std::string comment_text)
+    : Block(RowType::kComment, block_position, shader_line_number)
+    , text(comment_text)
+{
+}
+
+SharedIsaItemModel::CommentBlock::~CommentBlock()
+{
+}
+
+SharedIsaItemModel::InstructionBlock::InstructionBlock(int block_position, uint32_t shader_line_number, std::string block_label)
+    : Block(RowType::kCode, block_position, shader_line_number)
+{
+    token.token_text = block_label;
+}
+
+SharedIsaItemModel::InstructionBlock::~InstructionBlock()
+{
 }

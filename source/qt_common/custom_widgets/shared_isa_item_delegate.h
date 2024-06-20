@@ -1,5 +1,5 @@
 //=============================================================================
-// Copyright (c) 2022-2023 Advanced Micro Devices, Inc. All rights reserved.
+// Copyright (c) 2022-2024 Advanced Micro Devices, Inc. All rights reserved.
 /// @author AMD Developer Tools Team
 /// @file
 /// @brief Declaration for a shared isa item delegate.
@@ -10,10 +10,11 @@
 
 #include <QModelIndex>
 #include <QPainter>
-#include <QStyledItemDelegate>
 #include <QStyleOptionViewItem>
+#include <QStyledItemDelegate>
 
 #include "shared_isa_item_model.h"
+#include "shared_isa_proxy_model.h"
 #include "shared_isa_tree_view.h"
 
 /// @brief SharedIsaItemDelegate is a styled delegate to be used with the SharedIsaTreeView.
@@ -58,30 +59,32 @@ public:
     virtual QSize sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const Q_DECL_OVERRIDE;
 
 protected:
-    /// @brief Determines if the current model index is at the top the corresponding tree and is an instruction.
+    /// @brief Determines if the source model index is at the top of its corresponding tree viewport and is a child row.
     ///
-    /// If the current index is at the top and is an instruction, the parent code block label will be pinned there instead in the op code column.
+    /// If the index is at the top and is a child, the parent label will be pinned there instead.
     ///
-    /// @param [in] source_model_index                 The source model index.
-    /// @param [in] proxy_model_index                  The proxy model index.
-    /// @param [in] proxy_index_y_position             The y position of the proxy model index.
-    /// @param [out] pinned_code_block_op_code_column  Flag set if the index is on top and is an instruction, but it is the op code column.
+    /// @param [in]  source_model_index               The source model index.
+    /// @param [in]  proxy_model_index                The proxy model index.
+    /// @param [in]  proxy_index_y_position           The y position of the proxy model index.
+    /// @param [out] pinned_label_line_number_column  true if the index is at the top of its tree, is a child index, and is the line number column.
     ///
-    /// @return true if there is an instruction at the top of the corresponding tree view, false if not, or if the current column is the op code column where the code block label will be pinned.
+    /// @return true if the index is a child index and at the top of the corresponding tree view, false if not.
     bool CodeBlockLabelPinnedToTop(const QModelIndex& source_model_index,
                                    const QModelIndex& proxy_model_index,
                                    int&               proxy_index_y_position,
-                                   bool&              pinned_code_block_op_code_column) const;
-
-    /// @brief Paint a 1 pixel gray vertical line at the right edge of the provided rectangle.
-    ///
-    /// @param [in] painter   The painter to use.
-    /// @param [in] rectangle The rectangle to use.
-    void PaintColumnSeparator(QPainter* painter, const QRect& rectangle) const;
+                                   bool&              pinned_label_line_number_column) const;
 
     SharedIsaTreeView* view_;  ///< The corresponding tree view.
 
 private:
+    /// @brief Help navigating from labels to branches by accomodating for column span when calculating x position relative to a column.
+    ///
+    /// @param [in]  index            The view index to check.
+    /// @param [in]  proxy            The proxy model.
+    /// @param [out] source_index     The source index to check; will be changed to the op code source index if the given index spans columns.
+    /// @param [out] local_x_position The x position of a mouse event; will be changed if the given index spans columns to be relative to the op code column.
+    void AdjustXPositionForSpannedColumns(const QModelIndex& index, const QSortFilterProxyModel* proxy, QModelIndex& source_index, int& local_x_position);
+
     /// @brief Helper function to help determine if a selectable token is under the mouse.
     ///
     /// @param [in]  source_index                The source model index that the mouse move event occurred under.
@@ -118,6 +121,33 @@ private:
                              int                              code_block_index,
                              int                              instruction_index,
                              int                              token_index) const;
+
+    /// @brief Helper function to paint the text of a list of isa tokens or isa comments.
+    ///
+    /// @param [in] painter         The QPainter that will be used for painting.
+    /// @param [in] option          The style option for determining font metrics.
+    /// @param [in] index           The model index of the token.
+    /// @param [in] token_rectangle The rectangle where the token text will be drawn.
+    /// @param [in] tokens          The list of tokens to be painted.
+    /// @param [in] token_index     The starting index of the token in the double vector of tokens. Zero if there is only a singe vector.
+    /// @param [in] is_comment      true if painting comment text, false if painting an instruction's tokens.
+    ///
+    /// @return A pair of the final token index and text rectangle for when painting a double vector of tokens.
+    std::pair<int, QRect> PaintText(QPainter*                              painter,
+                                    const QStyleOptionViewItem&            option,
+                                    const QModelIndex&                     index,
+                                    QRect                                  token_rectangle,
+                                    std::vector<SharedIsaItemModel::Token> tokens,
+                                    int                                    token_index,
+                                    bool                                   is_comment) const;
+
+    /// @brief Helper function to paint an isa opcode or isa comments in a spanned column.
+    ///
+    /// @param [in] painter      The QPainter that will be used for painting.
+    /// @param [in] option       The style option for determining font metrics.
+    /// @param [in] source_index The source index where the data to be painted is.
+    /// @param [in] proxy_index  The proxy index of where the painting should occur if it is not a comment.
+    void PaintSpanned(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& source_index, QModelIndex proxy_index) const;
 
     SharedIsaItemModel::Token mouse_over_isa_token_;  ///< Track the token that the mouse is over.
     SharedIsaItemModel::Token selected_isa_token_;    ///< Track the selected token.

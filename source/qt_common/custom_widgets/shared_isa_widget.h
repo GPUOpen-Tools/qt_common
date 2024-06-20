@@ -76,6 +76,9 @@ public:
     /// @param expand_collapse_state The true/false expand state of every code block currently in the model/view.
     void RestoreExpandState(ExpandCollapseState expand_collapse_state);
 
+    /// @brief Updates which rows in the view have their first column spanned whenever the data in the shared isa model changes.
+    void UpdateSpannedColumns();
+
     /// @brief Clear the history of the branch label navigation widget.
     void ClearHistory();
 

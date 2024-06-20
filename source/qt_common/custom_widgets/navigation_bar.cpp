@@ -29,11 +29,7 @@ NavigationBar::NavigationBar(QWidget* parent)
 {
     layout_.setAlignment(Qt::AlignCenter);
     layout_.setSpacing(10);
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    layout_.setMargin(20);
-#else
     layout_.setContentsMargins(20, 20, 20, 20);
-#endif
 
     browse_back_button_.setStyleSheet(kNavigationButtonStyle_);
     EnableBackButton(false);

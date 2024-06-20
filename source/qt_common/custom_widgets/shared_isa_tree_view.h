@@ -25,7 +25,6 @@ class SharedIsaTreeView : public ScaledTreeView
     Q_OBJECT
 
 public:
-
     /// @brief Constructor; set default properties on tree and header, create delegate and scroll bar.
     ///
     /// @param [in] parent The parent widget.
@@ -65,6 +64,20 @@ public:
     ///
     /// @param [in] widget The pointer to the SharedIsaWidget.
     void RegisterIsaWidget(SharedIsaWidget* widget);
+
+    /// @breif Invalidates the index that keeps track of the last row to have a code block pinned to it when switching events, shader stages, or profiles.
+    void ClearLastPinnedndex()
+    {
+        last_pinned_row_ = std::pair<int, int>(-1, -1);
+    }
+
+    /// @brief Turns on or off painting the column separators.
+    ///
+    /// @param [in] paint true to paint the column separators, false otherwise.
+    void PaintColumnSeparators(bool paint)
+    {
+        paint_column_separators_ = paint;
+    }
 
 public slots:
 
@@ -151,6 +164,8 @@ private:
     SharedIsaWidget*            shared_isa_widget_;      ///< The Isa widget.
     SharedIsaVerticalScrollBar* shared_isa_scroll_bar_;  ///< Scroll bar to paint red and purple rectangles corresponding to hot spots and text search matches.
     bool                        copy_line_numbers_;      ///< Whether the line number text is to be included when copying isa text. True by default.
+    std::pair<int, int>         last_pinned_row_;        ///< The code block and instruction rows of the last index that was pinned.
+    bool                        paint_column_separators_;  ///< Whether or not to paint the the column separators.
 };
 
 #endif  // QTCOMMON_CUSTOM_WIDGETS_SHARED_ISA_TREE_VIEW_H_
