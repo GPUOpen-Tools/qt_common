@@ -6,6 +6,7 @@
 //=============================================================================
 #include "tab_bar.h"
 
+#include <QApplication>
 #include <QHBoxLayout>
 #include <QMouseEvent>
 #include <QPainter>
@@ -13,7 +14,6 @@
 #include <QSizePolicy>
 #include <QTabBar>
 #include <QWidget>
-#include <QApplication>
 
 #include "qt_util.h"
 #include "scaling_manager.h"
@@ -106,13 +106,13 @@ QSize TabBar::tabSizeHint(int index) const
         {
             width = widget->geometry().width();
         }
-        return QSize(width,height);
+        return QSize(width, height);
     }
     else
     {
         QSize size_hint = QTabBar::tabSizeHint(index);
-        size_hint.setWidth(size_hint.width() + ScalingManager::Get().Scaled(contentsMargins().left() + contentsMargins().right()));
-        size_hint.setHeight(size_hint.height() + ScalingManager::Get().Scaled(contentsMargins().top() + contentsMargins().bottom()));
+        size_hint.setWidth(size_hint.width() + contentsMargins().left() + contentsMargins().right());
+        size_hint.setHeight(size_hint.height() + contentsMargins().top() + contentsMargins().bottom());
         return size_hint;
     }
 }

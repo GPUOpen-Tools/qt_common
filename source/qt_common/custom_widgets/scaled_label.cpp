@@ -15,6 +15,7 @@
 ScaledLabel::ScaledLabel(QWidget* parent)
     : QLabel(parent)
     , invalidating_font_metrics_(false)
+    , first_show_(true)
 {
     setSizePolicy(QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Fixed);
     connect(&ScalingManager::Get(), &ScalingManager::ScaleFactorChanged, this, &ScaledLabel::OnScaleFactorChanged);
@@ -48,5 +49,21 @@ void ScaledLabel::changeEvent(QEvent* event)
 
             updateGeometry();
         }
+    }
+}
+
+void ScaledLabel::showEvent(QShowEvent* show_event)
+{
+    QLabel::showEvent(show_event);
+
+    if (first_show_ == true)
+    {
+        invalidating_font_metrics_ = true;
+        QtCommon::QtUtils::InvalidateFontMetrics(this);
+        invalidating_font_metrics_ = false;
+
+        updateGeometry();
+
+        first_show_ = false;
     }
 }

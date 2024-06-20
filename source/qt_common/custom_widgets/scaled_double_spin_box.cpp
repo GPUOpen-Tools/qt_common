@@ -22,20 +22,6 @@ ScaledDoubleSpinBox::~ScaledDoubleSpinBox()
     disconnect(&ScalingManager::Get(), &ScalingManager::ScaleFactorChanged, this, &ScaledDoubleSpinBox::OnScaleFactorChanged);
 }
 
-QSize ScaledDoubleSpinBox::sizeHint() const
-{
-    QSize size_hint = QDoubleSpinBox::sizeHint();
-
-    QFontMetrics metrics = ScalingManager::Get().ScaledFontMetrics(font());
-
-    if (metrics.height() > size_hint.height())
-    {
-        size_hint.setHeight(metrics.height());
-    }
-
-    return size_hint;
-}
-
 void ScaledDoubleSpinBox::OnScaleFactorChanged()
 {
     if (parentWidget() != nullptr && parentWidget()->layout() != nullptr)

@@ -32,9 +32,15 @@ private slots:
     /// Callback for when the DPI scale factor changes
     void OnScaleFactorChanged();
 
+    /// \brief Override the show event to invalidate the font metrics when first shown.
+    /// \param show_event The QShowEvent.
+    void showEvent(QShowEvent* show_event) Q_DECL_OVERRIDE;
+
 private:
     /// Track if invalidating font metrics so the changeEvent does not become recursive.
     bool invalidating_font_metrics_;
+
+    bool first_show_;  ///< Boolean to track the first time this widget is shown to invalidate the font metrics.
 };
 
 #endif  // QTCOMMON_CUSTOM_WIDGETS_SCALED_LABEL_H_

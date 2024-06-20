@@ -1,5 +1,5 @@
 #######################################################################################################################
-### Copyright (c) 2019-2021 Advanced Micro Devices, Inc. All rights reserved.
+### Copyright (c) 2019-2024 Advanced Micro Devices, Inc. All rights reserved.
 ### @author AMD Developer Tools Team
 #######################################################################################################################
 
@@ -31,8 +31,6 @@ if (NOT Qt6_DIR)
     endif ()
 endif ()
 
-
-
 if (Qt5_DIR OR Qt6_DIR)
     #######################################################################################################################
     # Setup the INSTALL target to include Qt DLLs
@@ -57,7 +55,7 @@ if (Qt5_DIR OR Qt6_DIR)
             if (WIN32)
                 if (Qt6_DIR)
                     set(DEPLOYQT_POST_BUILD_COMMAND
-                            ${DEPLOYQT_EXECUTABLE} $<TARGET_FILE:${target}> -verbose 0 --release --no-compiler-runtime --no-translations
+                            ${DEPLOYQT_EXECUTABLE} $<TARGET_FILE:${target}> -verbose 0 --no-compiler-runtime --no-translations --no-system-d3d-compiler --no-system-dxc-compiler --no-opengl-sw --no-network
                             WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
                 else ()
                     set(DEPLOYQT_POST_BUILD_COMMAND
@@ -67,7 +65,7 @@ if (Qt5_DIR OR Qt6_DIR)
             elseif (UNIX AND NOT APPLE)
                 set(DEPLOYQT_POST_BUILD_COMMAND
                         ${CMAKE_COMMAND} -E env LD_LIBRARY_PATH=${EXTERNAL_DIR}/libtraceevent/lib:${EXTERNAL_DIR}/libtracefs/lib
-                        ${DEPLOYQT_EXECUTABLE} $<TARGET_FILE:${target}> -qmake=${QT_QMAKE_EXECUTABLE} -verbose=0 -unsupported-allow-new-glibc
+                        ${DEPLOYQT_EXECUTABLE} $<TARGET_FILE:${target}> -qmake=${QT_QMAKE_EXECUTABLE} -verbose=0 -unsupported-allow-new-glibc -no-translations
                         WORKING_DIRECTORY ${PROJECT_BINARY_DIR})
             elseif (include_mac)
                 set(DEPLOYQT_POST_BUILD_COMMAND
@@ -96,14 +94,25 @@ if (Qt5_DIR OR Qt6_DIR)
 
                 # Due to windows requiring DLLs be shipped adjacent we must be explicit here...
                 # TODO: Maybe eventually we could look into some sort of manifest file?
-                install(FILES
-                        ${target_file_dir}/Qt5Core${qt_suffix}
-                        ${target_file_dir}/Qt5Gui${qt_suffix}
-                        ${target_file_dir}/Qt5Svg${qt_suffix}
-                        ${target_file_dir}/Qt5Widgets${qt_suffix}
+                if (Qt5_DIR)
+                    install(FILES
+                            ${target_file_dir}/Qt5Core${qt_suffix}
+                            ${target_file_dir}/Qt5Gui${qt_suffix}
+                            ${target_file_dir}/Qt5Svg${qt_suffix}
+                            ${target_file_dir}/Qt5Widgets${qt_suffix}
+                            DESTINATION . COMPONENT ${component})
+
+                    install(FILES ${target_file_dir}/Qt5Network${qt_suffix} DESTINATION . COMPONENT ${component} OPTIONAL)
+                else ()
+                    install(FILES
+                        ${target_file_dir}/Qt6Core${qt_suffix}
+                        ${target_file_dir}/Qt6Gui${qt_suffix}
+                        ${target_file_dir}/Qt6Svg${qt_suffix}
+                        ${target_file_dir}/Qt6Widgets${qt_suffix}
                         DESTINATION . COMPONENT ${component})
 
-                install(FILES ${target_file_dir}/Qt5Network${qt_suffix} DESTINATION . COMPONENT ${component} OPTIONAL)
+                    install(FILES ${target_file_dir}/Qt6Network${qt_suffix} DESTINATION . COMPONENT ${component} OPTIONAL)
+                endif ()
 
                 install(DIRECTORY ${target_file_dir}/iconengines DESTINATION . COMPONENT ${component})
                 install(DIRECTORY ${target_file_dir}/imageformats DESTINATION . COMPONENT ${component})

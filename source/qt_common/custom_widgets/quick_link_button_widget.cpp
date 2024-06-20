@@ -11,8 +11,8 @@
 #include "quick_link_button_widget.h"
 
 #include <QPainter>
-#include <QStylePainter>
 #include <QStyleOptionButton>
+#include <QStylePainter>
 
 #include "common_definitions.h"
 #include "qt_util.h"
@@ -49,8 +49,6 @@ void QuickLinkButtonWidget::OnScaleFactorChanged()
 
 QSize QuickLinkButtonWidget::sizeHint() const
 {
-    ScalingManager& sm = ScalingManager::Get();
-
     // Setup a temporary font to get fontMetrics for bold and non-bold fonts.
     QFont tmp_font(font());
     tmp_font.setBold(true);
@@ -66,7 +64,7 @@ QSize QuickLinkButtonWidget::sizeHint() const
 
     // The height is defined by the height of the title plus two lines of description plus two line spacing between the text.
     // Then add two more margins for above the title and below the second line of description.
-    int height = title_font_metrics.height() + 2 * desc_font_metrics.height() + 2 * sm.Scaled(kLineSpacing_);
+    int height = title_font_metrics.height() + 2 * desc_font_metrics.height() + 2 * kLineSpacing_;
     height += (contentsMargins().top() + contentsMargins().bottom());
 
     return QSize(width, height);
@@ -75,8 +73,6 @@ QSize QuickLinkButtonWidget::sizeHint() const
 void QuickLinkButtonWidget::paintEvent(QPaintEvent* event)
 {
     Q_UNUSED(event);
-
-    ScalingManager& sm = ScalingManager::Get();
 
     QPainter painter(this);
 
@@ -116,25 +112,25 @@ void QuickLinkButtonWidget::paintEvent(QPaintEvent* event)
 
     // Move down additional line spacing, and below the first line of description text.
     painter.setFont(desc_font);
-    y_offset += sm.Scaled(kLineSpacing_) + painter.fontMetrics().height();
+    y_offset += kLineSpacing_ + painter.fontMetrics().height();
     painter.drawText(x_offset, y_offset, description_line_one_);
 
     // Move down additional line spacing, and below the second line of description text.
-    y_offset += sm.Scaled(kLineSpacing_) + painter.fontMetrics().height();
+    y_offset += kLineSpacing_ + painter.fontMetrics().height();
     painter.drawText(x_offset, y_offset, description_line_two_);
 }
 
 void QuickLinkButtonWidget::leaveEvent(QEvent* event)
 {
     QPushButton::leaveEvent(event);
-    
+
     highlighted_ = false;
 }
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 void QuickLinkButtonWidget::enterEvent(QEvent* event)
 #else
-void QuickLinkButtonWidget::enterEvent(QEnterEvent *event)
+void QuickLinkButtonWidget::enterEvent(QEnterEvent* event)
 #endif
 {
     QPushButton::enterEvent(event);

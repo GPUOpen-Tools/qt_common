@@ -11,6 +11,8 @@
 #include "donut_pie_widget.h"
 
 #include <math.h>
+
+#include <QFontMetrics>
 #include <QPainter>
 #include <QQueue>
 
@@ -39,7 +41,7 @@ DonutPieWidget::~DonutPieWidget()
 
 QSize DonutPieWidget::sizeHint() const
 {
-    return ScalingManager::Get().Scaled(QSize(size_, size_));
+    return QSize(size_, size_);
 }
 
 void DonutPieWidget::paintEvent(QPaintEvent* paint_event)
@@ -49,16 +51,15 @@ void DonutPieWidget::paintEvent(QPaintEvent* paint_event)
     QPainter painter(this);
 
     painter.setRenderHint(QPainter::Antialiasing);
-    painter.fillRect(rect(), palette().window());
 
     const int width  = rect().width();
     const int height = rect().height();
 
-    const qreal scaled_arc_width = ScalingManager::Get().Scaled(arc_width_);
+    const qreal scaled_arc_width = arc_width_;
 
     // Determine widest label.
     int                 max_width    = 0;
-    const QFontMetrics& font_metrics = ScalingManager::Get().ScaledFontMetrics(font());
+    const QFontMetrics& font_metrics = QFontMetrics(font());
     for (unsigned int index = 0; index < num_segments_; ++index)
     {
         const int text_width = font_metrics.boundingRect(slices_[index].slice_text_).width();
@@ -147,7 +148,7 @@ void DonutPieWidget::paintEvent(QPaintEvent* paint_event)
     }
 
     // Draw the description text
-    font.setPixelSize(ScalingManager::Get().Scaled(value_font_size_));
+    font.setPixelSize(value_font_size_);
     painter.setFont(font);
 
     int text_width = QtCommon::QtUtils::GetPainterTextWidth(&painter, text_line_one_);
@@ -156,7 +157,7 @@ void DonutPieWidget::paintEvent(QPaintEvent* paint_event)
     int desc_y_pos = (height * 52) / 100;
     painter.drawText(desc_x_pos, desc_y_pos, text_line_one_);
 
-    font.setPixelSize(ScalingManager::Get().Scaled(text_font_size_));
+    font.setPixelSize(text_font_size_);
     painter.setFont(font);
     text_width = QtCommon::QtUtils::GetPainterTextWidth(&painter, text_line_two_);
     desc_x_pos = (width - text_width) / 2;

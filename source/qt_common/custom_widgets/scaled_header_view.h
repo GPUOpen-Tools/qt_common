@@ -45,10 +45,12 @@ public:
         column_padding_ = padding;
     }
 
-    /// Sets the column width to the specified width in em's and will
-    /// change the column ResizeMode to Fixed.
-    /// Setting column width based on em's allows the column to be properly
-    /// resize on DPI scale changes. See AutoResizeColumns().
+    /// @brief Sets the column width to the specified width in em's and changes the column ResizeMode to Fixed.
+    ///
+    /// @param [in] column   The column index to set a fixed width for.
+    /// @param [in] em_count The em count to use to calculate a fixed width.
+    ///
+    /// @deprecated Use of this function is strongly discouraged now that Qt 6 supports high dpi scaling.
     void SetColumnWidthEms(const int column, const int em_count);
 
     /// Automatically resizes column widths based on their em-count.
@@ -62,20 +64,17 @@ protected:
     virtual QSize sectionSizeFromContents(int logical_index) const Q_DECL_OVERRIDE;
 
 private:
-    /// Calculate addtional space needed for the sort indicator if it is being shown.
-    /// \return The additional space needed for the sort indicator. Note that this should
-    /// always be 0 in one dimension, because the sort indicator will either be above/below
-    /// the text (ie: additional height needed), or to the left/right of the text (additional
-    /// width needed). It may also return (0,0) if the sort indicator is not being used on the
-    /// header.
-    QSize GetSpaceForSortIndicator() const;
-
     /// Calculates a section size based on the previously specified em-count.
     /// \param column The column for which to calculate a section size.
     /// \return A desired section size for the specified column based on the current
     /// font and em-count. If the supplied column did not have an em-count specified,
     /// then an invalid QSize is returned.
     QSize SectionSizeFromEmCount(const int column) const;
+
+    /// @brief Calculate addtional space needed for the sort indicator if it is being shown.
+    ///
+    /// @return The additional space needed for the sort indicator.
+    QSize GetSpaceForSortIndicator() const;
 
     /// Allows the use of em's to define the column widths.
     /// em's are the width of the letter 'm', which allows the column widths

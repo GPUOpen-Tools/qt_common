@@ -9,8 +9,9 @@
 #define QTCOMMON_CUSTOM_WIDGETS_TIMELINE_VIEW_H_
 
 #include <QGraphicsItem>
-#include <QGraphicsScene>
+#include <QGraphicsLineItem>
 #include <QGraphicsRectItem>
+#include <QGraphicsScene>
 #include <QGraphicsView>
 
 #include "ruler_widget.h"
@@ -31,7 +32,7 @@ public:
     /// \param parent The parent widget.
     explicit TimelineView(QWidget* parent);
 
-    /// Destructor which cleans up some of the graphics items in the timeline. 
+    /// Destructor which cleans up some of the graphics items in the timeline.
     virtual ~TimelineView();
 
     /// Handle resizing
@@ -208,7 +209,7 @@ protected:
     RulerConfig ruler_config_;  ///< Ruler config
 
     RulerWidget*       ruler_;            ///< Ruler widget
-    QGraphicsRectItem* mouse_indicator_;  ///< Vertical mouse indicator widget
+    QGraphicsLineItem* mouse_indicator_;  ///< Vertical mouse indicator widget
     QGraphicsRectItem* selection_box_;    ///< Selection box widget
     QGraphicsScene*    scene_;            ///< Scene containing all widgets
 

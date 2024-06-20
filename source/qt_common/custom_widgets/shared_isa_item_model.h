@@ -18,6 +18,8 @@
 #include <utility>
 #include <vector>
 
+class SharedIsaTreeView;
+
 /// @brief SharedIsaItemModel is an item model that stores shader isa and comments, intended to be displayed in a tree view.
 ///
 /// It supports 1 level of parenting hierarchy.
@@ -84,8 +86,8 @@ public:
         TokenType   type;                  ///< The type of this token.
         int         start_register_index;  ///< The starting register index if this token represents a register.
         int         end_register_index;    ///< The ending register index if this token represents a register.
-        int         x_position_start;      ///< The token's starting x view position.
-        int         x_position_end;        ///< The token's ending x view position.
+        qreal       x_position_start;      ///< The token's starting x view position.
+        qreal       x_position_end;        ///< The token's ending x view position.
         bool        is_selectable;         ///< true if the token can be selected, false otherwise.
 
         /// @brief Constructor; create an empty token.
@@ -186,17 +188,19 @@ public:
     /// Also, map line numbers to their source code block indices.
     virtual void CacheSizeHints();
 
-    /// @brief Get the cached column size for the requested column index.
+    /// @brief Get the cached column size for the requested column index and tree.
     ///
     /// @param [in] column_index The column index.
+    /// @param [in] tree         The tree view.
     ///
     /// @return The cached column size.
-    virtual QSize ColumnSizeHint(int column_index) const;
+    virtual QSize ColumnSizeHint(int column_index, SharedIsaTreeView* tree) const;
 
-    /// @brief Set the fixed font being used by an isa tree; use it to cache column sizes.
+    /// @brief Cache the fixed font being used by attached trees. Use it to efficiently measure isa text from here on out.
     ///
     /// @param [in] fixed_font The fixed font to use.
-    void SetFixedFont(const QFont& fixed_font);
+    /// @param [in] tree       The attached tree view; use it to achieve more accurate isa text measurement.
+    void SetFixedFont(const QFont& fixed_font, SharedIsaTreeView* tree);
 
     /// @brief Get the source model index that corresponds to the provided line number.
     ///
@@ -372,7 +376,7 @@ protected:
     std::unordered_map<std::string, int> code_block_label_to_index_;  ///< Map code block label names to their index into all blocks.
 
     QFont fixed_font_;                  ///< A fixed font set by an application to assist caching size hints for columns.
-    int   fixed_font_character_width_;  ///< Cache the width of a single character of the fixed font.
+    qreal fixed_font_character_width_;  ///< Cache the width of a single character of the fixed font.
     bool  line_numbers_visible_;        ///< Whether the line numbers are to be shown.
 
 private:

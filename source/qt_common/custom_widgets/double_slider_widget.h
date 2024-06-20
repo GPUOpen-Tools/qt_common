@@ -7,10 +7,10 @@
 #ifndef QTCOMMON_CUSTOM_WIDGETS_DOUBLE_SLIDER_WIDGET_H_
 #define QTCOMMON_CUSTOM_WIDGETS_DOUBLE_SLIDER_WIDGET_H_
 
+#include <QObject>
 #include <QSlider>
 #include <QStyle>
 #include <QStylePainter>
-#include <QObject>
 
 class DoubleSliderWidget : public QSlider
 {
@@ -35,12 +35,6 @@ public:
 
     /// Destructor
     virtual ~DoubleSliderWidget();
-
-    /// The DoubleSliderWidget can shrink / expand to fill whatever amount of space
-    /// is allocated by the layout, so simply return a default sizeHint that is
-    /// scaled according to the ScalingManager.
-    /// \return A default size hint.
-    virtual QSize sizeHint() const Q_DECL_OVERRIDE;
 
     enum HandleMovementModeType
     {

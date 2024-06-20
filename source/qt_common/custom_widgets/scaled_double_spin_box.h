@@ -23,11 +23,6 @@ public:
     /// Destructor.
     virtual ~ScaledDoubleSpinBox();
 
-    /// Overridden sizeHint that adjusts the height
-    /// of the spinbox to match a DPI scaled font.
-    /// \return The preferred size for the widget.
-    virtual QSize sizeHint() const Q_DECL_OVERRIDE;
-
 private slots:
     /// Callback for when the DPI scale factor changes.
     void OnScaleFactorChanged();

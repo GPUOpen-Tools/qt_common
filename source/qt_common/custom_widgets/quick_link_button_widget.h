@@ -72,8 +72,8 @@ private slots:
     void OnScaleFactorChanged();
 
 private:
-    const int    kLineSpacing_     = 5;                   ///< Number of pixels between lines of text
-    const int    kContentsMargin_  = 5;                   ///< Number of pixels margin between text and edge of button
+    const int    kLineSpacing_     = 2;                   ///< Number of pixels between lines of text
+    const int    kContentsMargin_  = 4;                   ///< Number of pixels margin between text and edge of button
     
     const QColor kLightThemeBackgroundColor_ = QColor(241, 241, 241);  ///< Background color of the button for light theme
 

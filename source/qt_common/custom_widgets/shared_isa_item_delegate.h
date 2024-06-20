@@ -83,7 +83,7 @@ private:
     /// @param [in]  proxy            The proxy model.
     /// @param [out] source_index     The source index to check; will be changed to the op code source index if the given index spans columns.
     /// @param [out] local_x_position The x position of a mouse event; will be changed if the given index spans columns to be relative to the op code column.
-    void AdjustXPositionForSpannedColumns(const QModelIndex& index, const QSortFilterProxyModel* proxy, QModelIndex& source_index, int& local_x_position);
+    void AdjustXPositionForSpannedColumns(const QModelIndex& index, const QSortFilterProxyModel* proxy, QModelIndex& source_index, qreal& local_x_position);
 
     /// @brief Helper function to help determine if a selectable token is under the mouse.
     ///
@@ -126,7 +126,7 @@ private:
     ///
     /// @param [in] painter         The QPainter that will be used for painting.
     /// @param [in] option          The style option for determining font metrics.
-    /// @param [in] index           The model index of the token.
+    /// @param [in] source_index    The source model index to paint for.
     /// @param [in] token_rectangle The rectangle where the token text will be drawn.
     /// @param [in] tokens          The list of tokens to be painted.
     /// @param [in] token_index     The starting index of the token in the double vector of tokens. Zero if there is only a singe vector.
@@ -135,7 +135,7 @@ private:
     /// @return A pair of the final token index and text rectangle for when painting a double vector of tokens.
     std::pair<int, QRect> PaintText(QPainter*                              painter,
                                     const QStyleOptionViewItem&            option,
-                                    const QModelIndex&                     index,
+                                    const QModelIndex&                     source_index,
                                     QRect                                  token_rectangle,
                                     std::vector<SharedIsaItemModel::Token> tokens,
                                     int                                    token_index,

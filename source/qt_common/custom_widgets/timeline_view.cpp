@@ -7,8 +7,8 @@
 
 #include "timeline_view.h"
 
-#include <QApplication>
 #include <QAbstractScrollArea>
+#include <QApplication>
 #include <QDebug>
 #include <QMouseEvent>
 #include <QScrollBar>
@@ -58,19 +58,15 @@ TimelineView::TimelineView(QWidget* pParent)
     ruler_ = new RulerWidget(ruler_config_);
     ruler_->setPos(0, 0);
 
-    ScalingManager& sm                  = ScalingManager::Get();
-    const int       scaled_ruler_height = sm.Scaled(kDefaultRulerHeight);
-
-    const int region_height        = (height() - scaled_ruler_height) / 2;
-    const int selection_position_y = region_height - (scaled_ruler_height / 2) - 2;
-
-    mouse_indicator_ = new QGraphicsRectItem();
-    mouse_indicator_->setRect(0, scaled_ruler_height, sm.Scaled(1.0), height() - scaled_ruler_height);
-    mouse_indicator_->setBrush(Qt::gray);
+    mouse_indicator_ = new QGraphicsLineItem();
     mouse_indicator_->setZValue(1);
-    mouse_indicator_->setPen(Qt::NoPen);
 
-    selection_box_ = new QGraphicsRectItem(QRectF(0, selection_position_y * -1, 0, height() - scaled_ruler_height));
+    auto mouse_pen = mouse_indicator_->pen();
+    mouse_pen.setColor(Qt::gray);
+    mouse_pen.setCosmetic(true);  // Don't scale.
+    mouse_indicator_->setPen(mouse_pen);
+
+    selection_box_ = new QGraphicsRectItem();
     selection_box_->setBrush(kSelectionColor);
     selection_box_->setPen(Qt::NoPen);
     selection_box_->setOpacity(0.0);
@@ -160,21 +156,16 @@ void TimelineView::ScrollBarChanged()
 
 void TimelineView::UpdateMouseIndicator()
 {
-    QRectF rect = mouse_indicator_->rect();
+    const auto x_position = ClockToSceneCoordinate(last_hovered_clock_);
 
     if (is_ruler_hidden_ == true)
     {
-        rect.setY(0);
+        mouse_indicator_->setLine(x_position, 0, x_position, height());
     }
     else
     {
-        rect.setY(ScalingManager::Get().Scaled(kDefaultRulerHeight + 1));
+        mouse_indicator_->setLine(x_position, kDefaultRulerHeight + 1, x_position, height());
     }
-
-    rect.setHeight(height());
-
-    mouse_indicator_->setRect(rect);
-    mouse_indicator_->setX(ClockToSceneCoordinate(last_hovered_clock_));
 }
 
 void TimelineView::UpdateSelectionBox()
@@ -191,7 +182,7 @@ void TimelineView::UpdateSelectionBox()
     }
     else
     {
-        rect.setY(ScalingManager::Get().Scaled(kDefaultRulerHeight + 1));
+        rect.setY(kDefaultRulerHeight + 1);
     }
 
     rect.setWidth(scene_end_pos_x - scene_start_pos_x);
@@ -628,7 +619,7 @@ int TimelineView::BasePosY() const
 {
     if (horizontalScrollBarPolicy() == Qt::ScrollBarAlwaysOn || horizontalScrollBarPolicy() == Qt::ScrollBarAsNeeded)
     {
-        return height() - qApp->style()->pixelMetric(QStyle::PM_ScrollBarExtent) - ScalingManager::Get().Scaled(3);
+        return height() - qApp->style()->pixelMetric(QStyle::PM_ScrollBarExtent) - 3;
     }
     else
     {

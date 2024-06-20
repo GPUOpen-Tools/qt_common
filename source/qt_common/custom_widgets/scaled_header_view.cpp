@@ -43,65 +43,12 @@ QSize ScaledHeaderView::sectionSizeFromContents(int logical_index) const
             // Get default size hint
             size_hint = QHeaderView::sectionSizeFromContents(logical_index);
         }
-
-        QSize tmp_size;
-        if (!size_hint.isValid())
-        {
-            QVariant header_data = item_model->headerData(logical_index, orientation(), Qt::DisplayRole);
-            if (header_data.isValid())
-            {
-#ifdef _DEBUG
-                // In debug builds, temporarily copy the header data to a std::string for easier reading.
-                const std::string header_text = header_data.toString().toStdString();
-                tmp_size                      = this->fontMetrics().boundingRect(QString(header_text.c_str())).size();
-#else
-                tmp_size = this->fontMetrics().boundingRect(header_data.toString()).size();
-#endif
-            }
-
-            // Make additional adjustments if there is a sort indicator on this section.
-            QSize sort_size = GetSpaceForSortIndicator();
-            tmp_size += sort_size;
-
-            // Use the larger of the two sizes.
-            size_hint = size_hint.expandedTo(tmp_size);
-        }
-
-        // Add scaled column padding to the width
-        int scaled_column_padding = ScalingManager::Get().Scaled(column_padding_);
-        size_hint.setWidth(size_hint.width() + scaled_column_padding);
     }
+
+    // Add column padding to the width.
+    size_hint.setWidth(size_hint.width() + column_padding_);
 
     return size_hint;
-}
-
-QSize ScaledHeaderView::GetSpaceForSortIndicator() const
-{
-    QSize   space;
-    QStyle* style = this->style();
-    if (style != nullptr && isSortIndicatorShown())
-    {
-        int margin    = style->pixelMetric(QStyle::PM_HeaderMargin, nullptr, this);
-        int mark_size = style->pixelMetric(QStyle::PM_HeaderMarkSize, nullptr, this);
-
-        // The style (and other options) controls whether the sort indicator is above / below,
-        // or the left / right of the text. Determine where the sort indicator will be
-        // and add the extra necessary space to that dimension. This ensures that the header has
-        // enough space to draw the sort indicator.
-        Qt::Alignment alignment = QFlags<Qt::AlignmentFlag>(style->styleHint(QStyle::StyleHint::SH_Header_ArrowAlignment, nullptr, this));
-        if ((alignment & Qt::AlignTop) || (alignment & Qt::AlignBottom))
-        {
-            space.setWidth(0);
-            space.setHeight(margin + mark_size);
-        }
-        else
-        {
-            space.setWidth(margin + mark_size);
-            space.setHeight(0);
-        }
-    }
-
-    return space;
 }
 
 void ScaledHeaderView::SetColumnWidthEms(const int column, const int em_count)
@@ -135,7 +82,7 @@ QSize ScaledHeaderView::SectionSizeFromEmCount(const int column) const
         if (em_count > 0)
         {
             section_size.setHeight(QHeaderView::sectionSizeFromContents(column).height());
-            int em_width = fontMetrics().boundingRect('m').width();
+            int em_width = fontMetrics().boundingRect('M').width();
             section_size.setWidth(em_count * em_width);
 
             // Make additional adjustments if there is a sort indicator on this section.
@@ -166,4 +113,34 @@ void ScaledHeaderView::AutoResizeColumns()
             setSectionResizeMode(original_resize_mode);
         }
     }
+}
+
+QSize ScaledHeaderView::GetSpaceForSortIndicator() const
+{
+    QSize   space(0, 0);
+    QStyle* style = this->style();
+
+    if (style != nullptr && isSortIndicatorShown())
+    {
+        int margin    = style->pixelMetric(QStyle::PM_HeaderMargin, nullptr, this);
+        int mark_size = style->pixelMetric(QStyle::PM_HeaderMarkSize, nullptr, this);
+
+        // The style (and other options) controls whether the sort indicator is above / below,
+        // or the left / right of the text. Determine where the sort indicator will be
+        // and add the extra necessary space to that dimension. This ensures that the header has
+        // enough space to draw the sort indicator.
+        Qt::Alignment alignment = QFlags<Qt::AlignmentFlag>(style->styleHint(QStyle::StyleHint::SH_Header_ArrowAlignment, nullptr, this));
+        if ((alignment & Qt::AlignTop) || (alignment & Qt::AlignBottom))
+        {
+            space.setWidth(0);
+            space.setHeight(margin + mark_size);
+        }
+        else
+        {
+            space.setWidth(margin + mark_size);
+            space.setHeight(0);
+        }
+    }
+
+    return space;
 }

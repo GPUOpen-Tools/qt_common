@@ -9,6 +9,7 @@
 #define QTCOMMON_CUSTOM_WIDGETS_ARROW_ICON_COMBO_BOX_H_
 
 #include <memory>
+
 #include <QCheckBox>
 #include <QLabel>
 #include <QListWidgetItem>
@@ -139,14 +140,14 @@ public:
     void SetRowHidden(int list_index, bool hidden);
 
     /// @Brief Disables/enables the item at the given index. If the index is invalid, does nothing.
-    /// 
+    ///
     /// @param list_index The index of the item to be disabled/enabled.
     /// @param disabled   Whether the item should be disabled (true) or enabled (false).
     void SetDisabled(int list_index, bool disabled);
 
     /// @Brief Gets the index of the last checked item if there is one.
     ///        Helper function to aid in disabling the last checked item.
-    /// 
+    ///
     /// @Return Returns -1 if there are multiple checked items and none are disabled.
     ///         If there is only 1 item checked, it returns the index of that item. If there
     ///         are multiple items checked, but 1 is disabled, it returns the index of that
@@ -337,6 +338,10 @@ protected:
     /// \param event A QFocusEvent to inform why focus was lost.
     void focusOutEvent(QFocusEvent* event) Q_DECL_OVERRIDE;
 
+    /// Override the show event to invalidate the font metrics when first shown.
+    /// \param show_event The QShowEvent.
+    void showEvent(QShowEvent* show_event) Q_DECL_OVERRIDE;
+
 private slots:
     /// Handle what happens when a list item is clicked
     /// \param item The clicked item
@@ -401,6 +406,7 @@ private:
     bool retain_default_text_;                        ///< Flag to retain default text when selection changes.
     bool all_choice_added_;                           ///< Indicates that an "All" checkbox has already been added to a multi-select combobox.
     bool all_choice_selected_;                        ///< Does this combo box have the "All" option selected.
+    bool first_show_;                                 ///< Boolean to track the first time this widget is shown to invalidate the font metrics.
 
     int                          size_;                         ///< The size of the encompassing rect.
     QColor                       color_;                        ///< The color of the arrow's lines.

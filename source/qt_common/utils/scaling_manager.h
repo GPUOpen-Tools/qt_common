@@ -34,59 +34,6 @@ public:
     /// \param main_widget The application main widget.
     void Initialize(QWidget* main_widget);
 
-    /// Integer scale function - scale an integer value by the scale factor.
-    /// Useful for growing a known base value according to the DPI scale.
-    /// \param i The integer to scale.
-    /// \return The scaled integer.
-    int Scaled(int i) const;
-
-    /// Unsigned Integer scale function - scale an unsigned int value by the scale factor.
-    /// Useful for growing a known base value according to the DPI scale.
-    /// \param u The unsigned int to scale.
-    /// \return The scaled value.
-    unsigned int Scaled(unsigned int u) const;
-
-    /// Double scale function - scale an double value by the scale factor.
-    /// Useful for growing a known base value according to the DPI scale.
-    /// \param d The double to scale.
-    /// \return The double integer.
-    double Scaled(double d) const;
-
-    /// QSize scale function - scale an QSize by the scale factor.
-    /// Useful for growing a known base size according to the DPI scale.
-    /// \param qs The QSize to scale.
-    /// \return The scaled QSize.
-    QSize Scaled(const QSize& qs) const;
-
-    /// QRect scale function - scale an QRect by the scale factor.
-    /// Useful for growing a known base rect according to the DPI scale.
-    /// \param qr The QRect to scale.
-    /// \return The scaled QRect.
-    QRect Scaled(const QRect& qr) const;
-
-    /// Returns a QFontMetrics that is for the scaled size of the supplied font.
-    /// Useful for measuring the size of a font that automatically gets scaled by Qt.
-    /// \font The QFont to scale.
-    /// \return The scaled QFontMetrics.
-    QFontMetrics ScaledFontMetrics(const QFont& font);
-
-    /// Integer rescale function - rescale an integer value by the rescale factor.
-    /// Useful for growing or shrinking a current value according to changes in the DPI scale.
-    /// \param i The integer to rescale.
-    /// \return The rescaled integer.
-    int Rescaled(int i) const;
-
-    /// Double rescale function - rescale a double value by the rescale factor.
-    /// Useful for growing or shrinking a current value according to changes in the DPI scale.
-    /// \param d The double to rescale.
-    /// \return The rescaled double.
-    double Rescaled(double d) const;
-
-    /// Rescale font point sizes using the font scale factor.
-    /// \param pointsize A font pointsize.
-    /// \return The scaled font pointsize.
-    double ScaledFontPointSize(double pointsize);
-
 private:
     /// Constructor/destructor is private for singleton
     explicit ScalingManager();
@@ -121,15 +68,6 @@ private:
     ///< Changing DPI scale to 200% => rescale_factor_ = 2.0 (ie: double the previous scale).
     ///< Changing DPI scale to 300% => rescale_factor_ = 1.5 (ie: 1.5x the previous scale).
     double rescale_factor_;
-
-    /// Font scale factor. QFontMetrics appears to calculate correctly at whatever the initial DPI scale is when the app is opened.
-    /// Font PointSizes thus need to get scaled relative to that initial DPI.
-    /// If initial DPI Scale is 100%, then font_scale_factor_ will always be equal to scale_factor_.
-    /// An initial DPI scale of 200% => font_scale_factor_ = 1.0.
-    /// Changing DPI scale to 100% => font_scale_factor_ = 0.5 (ie: half of initial scale).
-    /// Changing DPI scale to 200% => font_scale_factor_ = 1.0 (ie: back at initial scale).
-    /// Changing DPI scale to 300% => font_scale_factor_ = 1.5 (ie: 1.5x of initial scale).
-    double font_scale_factor_;
 
     /// Current screen DPI
     double dpi_;

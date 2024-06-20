@@ -101,9 +101,10 @@ void ScaledTableView::SetColumnPadding(int padding)
 
 int ScaledTableView::sizeHintForColumn(int column) const
 {
-    int width                 = QTableView::sizeHintForColumn(column);
-    int scaled_column_padding = ScalingManager::Get().Scaled(column_padding_);
-    width += scaled_column_padding;
+    int width = QTableView::sizeHintForColumn(column);
+
+    width += column_padding_;
+
     return width;
 }
 

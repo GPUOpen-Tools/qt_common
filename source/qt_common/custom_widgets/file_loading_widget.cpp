@@ -11,9 +11,9 @@
 #define _USE_MATH_DEFINES
 
 #include <math.h>
-#include <QPainter>
-#include <QPaintEvent>
 #include <QDebug>
+#include <QPaintEvent>
+#include <QPainter>
 
 #include "scaling_manager.h"
 
@@ -74,8 +74,8 @@ public:
     /// \param painter Pointer to a QPainter object
     void Paint(QPainter* painter)
     {
-        qreal x_pos   = x_pos_;
-        qreal y_pos   = y_pos_ - max_height_ + current_bar_height_;
+        qreal x_pos  = x_pos_;
+        qreal y_pos  = y_pos_ - max_height_ + current_bar_height_;
         qreal width  = width_;
         qreal height = (max_height_ - current_bar_height_) * 2.0;
         painter->fillRect(QRectF(x_pos, y_pos, width, height), painter->brush());
@@ -189,7 +189,7 @@ FileLoadingWidget::FileLoadingWidget(QWidget* parent)
     animation_timer_ = new QTimer(this);
     connect(animation_timer_, &QTimer::timeout, this, &FileLoadingWidget::Animate);
     animation_timer_->start(kAnimationTimer_);
-    animated_bars_ = new AnimatedBars(contentsRect().width(), contentsRect().height(), ScalingManager::Get().Scaled(kBarHorizontalSpacing_), kNumBars_);
+    animated_bars_ = new AnimatedBars(contentsRect().width(), contentsRect().height(), kBarHorizontalSpacing_, kNumBars_);
 
     connect(&ScalingManager::Get(), &ScalingManager::ScaleFactorChanged, this, &QWidget::updateGeometry);
 }
@@ -206,7 +206,7 @@ FileLoadingWidget::~FileLoadingWidget()
 QSize FileLoadingWidget::sizeHint() const
 {
     QSize size_hint(200, 200);
-    return ScalingManager::Get().Scaled(size_hint);
+    return size_hint;
 }
 
 void FileLoadingWidget::resizeEvent(QResizeEvent* event)
@@ -217,7 +217,7 @@ void FileLoadingWidget::resizeEvent(QResizeEvent* event)
     {
         disconnect(animation_timer_, &QTimer::timeout, this, &FileLoadingWidget::Animate);
         animation_timer_->stop();
-        animated_bars_->SetSize(contentsRect().width(), contentsRect().height(), ScalingManager::Get().Scaled(kBarHorizontalSpacing_));
+        animated_bars_->SetSize(contentsRect().width(), contentsRect().height(), kBarHorizontalSpacing_);
         connect(animation_timer_, &QTimer::timeout, this, &FileLoadingWidget::Animate);
         animation_timer_->start(kAnimationTimer_);
     }

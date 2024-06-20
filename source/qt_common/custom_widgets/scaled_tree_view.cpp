@@ -82,9 +82,11 @@ void ScaledTreeView::SetColumnPadding(int padding)
 
 int ScaledTreeView::sizeHintForColumn(int column) const
 {
-    int width                 = QTreeView::sizeHintForColumn(column);
-    int scaled_column_padding = ScalingManager::Get().Scaled(column_padding_);
-    width += scaled_column_padding;
+    int       width          = QTreeView::sizeHintForColumn(column);
+    const int column_padding = column_padding_;
+
+    width += column_padding;
+
     return width;
 }
 

@@ -7,8 +7,8 @@
 
 #include "recent_trace_widget.h"
 
-#include <QVBoxLayout>
 #include <QEvent>
+#include <QVBoxLayout>
 
 #include <time.h>
 
@@ -131,8 +131,8 @@ void RecentTraceWidget::SetRecentFileData(const RecentFileData& file)
     RecentTraceMiniWidget::SetFile(file);
 
     // Add widgets to the layout
-    widget_layout_->addItem(new QSpacerItem(5, ScalingManager::Get().Scaled(5), QSizePolicy::Ignored, QSizePolicy::Fixed));
-    widget_layout_->setSpacing(ScalingManager::Get().Scaled(2));
+    widget_layout_->addItem(new QSpacerItem(5, 5, QSizePolicy::Ignored, QSizePolicy::Fixed));
+    widget_layout_->setSpacing(2);
 
     // Add any widgets from derived classes
     AddCustomWidgets();
@@ -142,7 +142,7 @@ void RecentTraceWidget::SetRecentFileData(const RecentFileData& file)
     widget_layout_->setSizeConstraint(QLayout::SetMinimumSize);
 
     option_buttons_layout_ = new QHBoxLayout(widget_layout_->widget());
-    option_buttons_layout_->setSpacing(ScalingManager::Get().Scaled(20));
+    option_buttons_layout_->setSpacing(20);
     option_buttons_layout_->addWidget(delete_button_);
     option_buttons_layout_->addWidget(open_file_location_button_);
     option_buttons_layout_->addItem(new QSpacerItem(0, 0, QSizePolicy::MinimumExpanding, QSizePolicy::Ignored));

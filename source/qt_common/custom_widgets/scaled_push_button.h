@@ -30,11 +30,6 @@ public:
     /// @brief Destructor.
     virtual ~ScaledPushButton();
 
-    /// @brief Overridden setIconSize for the QAbstractButton.
-    ///
-    /// @param size Maximum size for the icon. Smaller icons will not be scaled up.
-    void setIconSize(const QSize& size);
-
     /// @brief Sets the correct link button stylesheet based on the current color theme and connects a slot to update if color theme is changed.
     void SetLinkStyleSheet();
 
@@ -45,8 +40,6 @@ private slots:
     /// @brief Slot function to set the correct link button stylesheet based on the current color theme when the color theme is changed.
     void UpdateLinkButtonStyleSheet();
 
-private:
-    QSize base_icon_size_;  ///< Base icon size DPI scaling will be calculated from.
 };
 
 #endif  // QTCOMMON_CUSTOM_WIDGETS_SCALED_PUSHBUTTON_H_

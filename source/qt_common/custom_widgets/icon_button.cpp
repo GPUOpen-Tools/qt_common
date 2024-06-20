@@ -7,13 +7,12 @@
 
 #include "icon_button.h"
 
-#include <QPaintEvent>
-#include <QMouseEvent>
-#include <QPushButton>
 #include <QIcon>
-#include <QStylePainter>
-#include <QStylePainter>
+#include <QMouseEvent>
+#include <QPaintEvent>
+#include <QPushButton>
 #include <QStyleOptionButton>
+#include <QStylePainter>
 
 #include "scaling_manager.h"
 
@@ -73,8 +72,6 @@ void IconButton::SetDisabledIcon(const QIcon& icon)
 QSize IconButton::sizeHint() const
 {
     QSize size_hint(baseSize());
-
-    size_hint = ScalingManager::Get().Scaled(size_hint);
 
     return size_hint;
 }

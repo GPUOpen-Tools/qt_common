@@ -151,7 +151,7 @@ void ColoredLegendScene::Update()
             text_legends_[i]->setFont(text_font);
             const int text_width = font_metrics.boundingRect(text_legends_[i]->toPlainText()).width();
 
-            x_pos += text_width + ScalingManager::Get().Scaled(kHorizontalSpacingAfterText);
+            x_pos += text_width + kHorizontalSpacingAfterText;
         }
     }
 

@@ -91,6 +91,9 @@ struct DefaultThemeColors
     QColor ruler_marker_color;                  ///< Marker color for the ruler widget.
     QColor ruler_edge_color;                    ///< Edge color for the ruler widget.
     QColor ruler_background_color;              ///< Background color for the ruler widget.
+    QColor row_selected_color;                  ///< Background color for a row that has been selected in a table or tree.
+    QColor window_background_color;             ///< Background color for for the window.
+    QColor graphics_scene_background_color;     ///< Background color for for the graphics scenes.
 
     QString link_button_style_sheet;  ///< Default link_button style sheet.
 };

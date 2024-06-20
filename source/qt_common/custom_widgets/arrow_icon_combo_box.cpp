@@ -12,8 +12,8 @@
 #include <QPainter>
 
 #include "common_definitions.h"
-#include "scaling_manager.h"
 #include "qt_util.h"
+#include "scaling_manager.h"
 
 #include "scaled_check_box.h"
 #include "scaled_label.h"
@@ -30,6 +30,7 @@ ArrowIconComboBox::ArrowIconComboBox(QWidget* parent)
     , retain_default_text_(false)
     , all_choice_added_(false)
     , all_choice_selected_(false)
+    , first_show_(true)
     , size_(kButtonBaseSize)
     , show_border_(false)
     , direction_(Direction::DownArrow)
@@ -68,7 +69,7 @@ void ArrowIconComboBox::OnScaleFactorChanged()
 
     // Setting a new scaled size will cause the vertices to get recalculated
     // and update the geometry of the widget.
-    SetSize(ScalingManager::Get().Scaled(kButtonBaseSize));
+    SetSize(kButtonBaseSize);
 
     updateGeometry();
     update();
@@ -385,17 +386,17 @@ int ArrowIconComboBox::LastCheckedIndex()
     QListWidgetItem* current_item = nullptr;
     for (int i = 0; i < item_list_->count(); i++)
     {
-        current_item = item_list_->item(i);
+        current_item             = item_list_->item(i);
         QCheckBox* item_checkbox = qobject_cast<QCheckBox*>(item_list_->itemWidget(current_item));
-        
+
         // If there is a disabled item (that is checked), return it's index to be re enabled.
-        // If there are other reasons why a checked item may be disabled besides it being the 
+        // If there are other reasons why a checked item may be disabled besides it being the
         // last checked item, this will have unintended results.
         if (!item_checkbox->isEnabled() && IsChecked(i))
         {
             return i;
         }
-        
+
         // Count the number of checked items.
         if (IsChecked(i))
         {
@@ -525,7 +526,6 @@ QCheckBox* ArrowIconComboBox::AddCheckboxItem(const QString& item_text, const QV
     checkbox->setFont(item_list_->font());
     checkbox->setChecked(checked);
     checkbox->setCursor(Qt::PointingHandCursor);
-    checkbox->UpdateIndicatorSize();
 
     if (is_all_option)
     {
@@ -773,10 +773,8 @@ QSize ArrowIconComboBox::sizeHint() const
 {
     ensurePolished();
 
-    ScalingManager& sm = ScalingManager::Get();
-
     // There are two offsets - one between the arrow and the text, and another after the text.
-    const int total_scaled_text_offsets = 2.0 * sm.Scaled(kTextOffsetX);
+    const int total_scaled_text_offsets = 2.0 * kTextOffsetX;
 
     QSize size_hint;
 
@@ -900,18 +898,13 @@ void ArrowIconComboBox::paintEvent(QPaintEvent* event)
 {
     Q_UNUSED(event);
 
-    // Get the ScalingManager
-    ScalingManager& sm                   = ScalingManager::Get();
-    const int       scaled_text_offset_x = sm.Scaled(kTextOffsetX);
+    const int scaled_text_offset_x = kTextOffsetX;
 
     // Set up the painter
     QPainter painter;
     painter.begin(this);
     painter.setRenderHint(QPainter::Antialiasing);
     painter.save();
-
-    // Paint background
-    painter.fillRect(rect(), palette().window());
 
     // Set properties for the lines
     QPen pen;
@@ -925,7 +918,7 @@ void ArrowIconComboBox::paintEvent(QPaintEvent* event)
         pen.setColor(Qt::lightGray);
     }
 
-    pen.setWidth(sm.Scaled(pen_width_));
+    pen.setWidth(pen_width_);
     painter.setPen(pen);
 
     const int half_height     = height() / 2;
@@ -1009,7 +1002,7 @@ void ArrowIconComboBox::paintEvent(QPaintEvent* event)
         {
             pen.setColor(QtCommon::QtUtils::ColorTheme::Get().GetCurrentThemeColors().arrow_icon_border_color);
         }
-        pen.setWidth(sm.Scaled(1.0));
+        pen.setWidth(1.0);
         painter.setPen(pen);
         painter.drawRect(this->rect());
     }
@@ -1136,4 +1129,21 @@ void ArrowIconComboBox::focusOutEvent(QFocusEvent* event)
 
     // Pass the event onto the base class.
     QPushButton::focusOutEvent(event);
+}
+
+void ArrowIconComboBox::showEvent(QShowEvent* show_event)
+{
+    QPushButton::showEvent(show_event);
+
+    if (first_show_ == true)
+    {
+        QtCommon::QtUtils::InvalidateFontMetrics(this);
+
+        SetSize(kButtonBaseSize);
+
+        updateGeometry();
+        update();
+
+        first_show_ = false;
+    }
 }

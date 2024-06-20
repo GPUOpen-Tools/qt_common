@@ -14,6 +14,7 @@
 #include <QFontMetrics>
 #include <QStringList>
 
+#include "qt_common/custom_widgets/shared_isa_tree_view.h"
 #include "qt_common/utils/common_definitions.h"
 #include "qt_common/utils/qt_util.h"
 #include "qt_common/utils/shared_isa_dictionary.h"
@@ -607,7 +608,7 @@ void SharedIsaItemModel::CacheSizeHints()
     column_widths_[kBinaryRepresentation] = binary_representation_length;
 }
 
-QSize SharedIsaItemModel::ColumnSizeHint(int column_index) const
+QSize SharedIsaItemModel::ColumnSizeHint(int column_index, SharedIsaTreeView* tree) const
 {
     QSize size_hint(0, 0);
 
@@ -616,17 +617,17 @@ QSize SharedIsaItemModel::ColumnSizeHint(int column_index) const
         return size_hint;
     }
 
-    size_hint.setHeight(QFontMetrics(fixed_font_).height() + 2);
+    size_hint.setHeight(QFontMetricsF(fixed_font_, tree).height() + 2.0); // Add arbitrary spacing found in Qt.
     size_hint.setWidth(column_widths_[column_index]);
 
     return size_hint;
 }
 
-void SharedIsaItemModel::SetFixedFont(const QFont& fixed_font)
+void SharedIsaItemModel::SetFixedFont(const QFont& fixed_font, SharedIsaTreeView* tree)
 {
     fixed_font_ = fixed_font;
 
-    QFontMetrics font_metrics(fixed_font_);
+    QFontMetricsF font_metrics(fixed_font_, tree);
 
     fixed_font_character_width_ = font_metrics.horizontalAdvance('T');
 }

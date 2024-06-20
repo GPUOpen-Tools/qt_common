@@ -23,10 +23,22 @@ static const float kRulerFontPointSize = 8.25f;
 
 void RulerWidget::PaintRulerBackground(QPainter* painter, const QRectF& rect)
 {
-    painter->setPen(QtCommon::QtUtils::ColorTheme::Get().GetCurrentThemeColors().ruler_edge_color);
-    painter->setBrush(QtCommon::QtUtils::ColorTheme::Get().GetCurrentThemeColors().ruler_background_color);
+    painter->save();
+
+    auto pen   = painter->pen();
+    auto brush = painter->brush();
+
+    pen.setColor(QtCommon::QtUtils::ColorTheme::Get().GetCurrentThemeColors().ruler_edge_color);
+    brush.setColor(QtCommon::QtUtils::ColorTheme::Get().GetCurrentThemeColors().ruler_background_color);
+
+    pen.setCosmetic(true); // Don't scale.
+
+    painter->setPen(pen);
+    painter->setBrush(brush);
 
     painter->drawRect(rect);
+
+    painter->restore();
 }
 
 double RulerWidget::GetStartingTime(double min_visible_time, uint64_t time_period, bool use_time_period)
@@ -52,14 +64,15 @@ void RulerWidget::PaintRuler(QPainter*     painter,
 {
     painter->save();
 
-    ScalingManager& sm = ScalingManager::Get();
-
-    QFont font;
-    font.setFamily(font.defaultFamily());
+    auto font = painter->font();
     font.setPointSizeF(kRulerFontPointSize);
     painter->setFont(font);
 
-    QPen pen(QtCommon::QtUtils::ColorTheme::Get().GetCurrentThemeColors().ruler_marker_color);
+    auto pen = painter->pen();
+
+    pen.setColor(QtCommon::QtUtils::ColorTheme::Get().GetCurrentThemeColors().ruler_marker_color);
+    pen.setCosmetic(true); // Don't scale.
+
     painter->setPen(pen);
 
     // convert maxtime, minvisible, maxvisible to nanoseconds if time units not clock
@@ -89,7 +102,7 @@ void RulerWidget::PaintRuler(QPainter*     painter,
     // further apart and will also increase the number displayed in each tick. For example, using
     // values of 0, 10, 20, 30 .. may cause the ruler to be too squashed, so maybe having ruler
     // segments of 0, 100, 200 (more spaced out) may be better
-    const double lower_limit = sm.Scaled(kMinimumTickStep);
+    const double lower_limit = kMinimumTickStep;
     while (tick_step < lower_limit)
     {
         // ie 10, 100, 1000, 10000 etc.
@@ -101,7 +114,7 @@ void RulerWidget::PaintRuler(QPainter*     painter,
     // Scale the ticks back down in the case where the gap between them is too large. Up to this
     // part, the scaling will be in base 10 but maybe the gap between 10000 and 20000 is too large.
     // In this case, the tick_step is halved so this goes down to 10000, 15000, 20000.
-    const double upper_limit = sm.Scaled(kMaximumTickStep);
+    const double upper_limit = kMaximumTickStep;
     while (tick_step > upper_limit)
     {
         time_period /= 2;
@@ -118,8 +131,8 @@ void RulerWidget::PaintRuler(QPainter*     painter,
 
     // quick calculation to start the ruler at the start of the draw region
     const double starting_time = GetStartingTime(min_visible_time, time_period, use_time_period);
-    count                      = starting_time / sm.Scaled(scale_increment);
-    clock_label                = sm.Scaled(scale_increment) * count;
+    count                      = starting_time / scale_increment;
+    clock_label                = scale_increment * count;
 
     double x_pos = rect.left() + (count * tick_step);
 
@@ -172,7 +185,7 @@ void RulerWidget::PaintRuler(QPainter*     painter,
                 painter->setWorldTransform(wt);
             }
 
-            clock_label += sm.Scaled(scale_increment);
+            clock_label += scale_increment;
             count++;
             x_pos += tick_step;
         }
@@ -192,13 +205,13 @@ RulerWidget::RulerWidget(const RulerConfig& config)
 
 QRectF RulerWidget::boundingRect() const
 {
-    return QRectF(0, 0, ScalingManager::Get().Scaled(config_.width), ScalingManager::Get().Scaled(config_.height));
+    return QRectF(0, 0, config_.width, config_.height);
 }
 
 QPainterPath RulerWidget::shape() const
 {
     QPainterPath path;
-    path.addRect(0, 0, ScalingManager::Get().Scaled(config_.width), ScalingManager::Get().Scaled(config_.height));
+    path.addRect(0, 0, config_.width, config_.height);
     return path;
 }
 

@@ -28,14 +28,6 @@ public:
     /// Virtual destructor.
     virtual ~ScaledCheckBox();
 
-    /// Update the indicator size to reflect the current font metrics.
-    /// If the font is changed programmatically, this should be called immediately after.
-    void UpdateIndicatorSize();
-
-    /// Overridden to return the scaled size hint for the QCheckBox.
-    /// \return The preferred size of this check box.
-    virtual QSize sizeHint() const Q_DECL_OVERRIDE;
-
     /// Simple stylesheet template for updating the indicator size when the DPI scale changes.
     /// This ties the indicator size to the font size,
     /// and assumes a 1:1 width:height ratio of the indicator icons.

@@ -108,11 +108,17 @@ bool SharedIsaItemDelegate::editorEvent(QEvent* event, QAbstractItemModel* model
     {
     case QEvent::MouseButtonRelease:
     {
-        const QMouseEvent* mouse_event             = static_cast<QMouseEvent*>(event);
-        const int          offset                  = view_->header()->sectionPosition(index.column());  // Use proxy on purpose because it wants logical index.
-        const int          view_x_position         = mouse_event->pos().x();
-        int                local_x_position        = view_x_position - offset;
-        int                token_under_mouse_index = -1;
+        const QMouseEvent* mouse_event = static_cast<QMouseEvent*>(event);
+        const qreal        offset      = view_->header()->sectionPosition(index.column());  // Use proxy on purpose because it wants logical index.
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+        const qreal view_x_position = mouse_event->pos().x();
+#else
+        const qreal view_x_position = mouse_event->position().x();
+#endif
+
+        qreal local_x_position        = view_x_position - offset;
+        int   token_under_mouse_index = -1;
 
         AdjustXPositionForSpannedColumns(index, proxy, source_index, local_x_position);
 
@@ -167,10 +173,17 @@ bool SharedIsaItemDelegate::editorEvent(QEvent* event, QAbstractItemModel* model
         mouse_over_instruction_index_ = -1;
         mouse_over_token_index_       = -1;
 
-        const QMouseEvent* mouse_event      = static_cast<QMouseEvent*>(event);
-        const int          offset           = view_->header()->sectionPosition(index.column());  // Use proxy on purpose because it wants logical index.
-        const int          view_x_position  = mouse_event->pos().x();
-        int                local_x_position = view_x_position - offset;
+        const QMouseEvent* mouse_event = static_cast<QMouseEvent*>(event);
+        const qreal        offset      = view_->header()->sectionPosition(index.column());  // Use proxy on purpose because it wants logical index.
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+        const qreal view_x_position = mouse_event->pos().x();
+#else
+
+        const qreal view_x_position = mouse_event->position().x();
+#endif
+
+        qreal local_x_position = view_x_position - offset;
 
         AdjustXPositionForSpannedColumns(index, proxy, source_index, local_x_position);
 
@@ -327,7 +340,7 @@ void SharedIsaItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem&
                 const std::vector<SharedIsaItemModel::Token> op_code_token =
                     qvariant_cast<std::vector<SharedIsaItemModel::Token>>(source_model_index.data(Qt::UserRole));
 
-                PaintText(painter, initialized_option, model_index, op_code_rectangle, op_code_token, 0, false);
+                PaintText(painter, initialized_option, source_model_index, op_code_rectangle, op_code_token, 0, false);
             }
         }
     }
@@ -363,7 +376,7 @@ void SharedIsaItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem&
                 {
                     const auto& operand_tokens = tokens.at(i);
 
-                    token_info = PaintText(painter, initialized_option, model_index, token_info.second, operand_tokens, token_info.first, false);
+                    token_info = PaintText(painter, initialized_option, source_model_index, token_info.second, operand_tokens, token_info.first, false);
 
                     // Add a comma if it is not the last operand.
                     if (i < tokens.size() - 1)
@@ -427,7 +440,7 @@ QSize SharedIsaItemDelegate::sizeHint(const QStyleOptionViewItem& option, const 
         return QStyledItemDelegate::sizeHint(option, index);
     }
 
-    return source_model->ColumnSizeHint(source_model_index.column());
+    return source_model->ColumnSizeHint(source_model_index.column(), view_);
 }
 
 bool SharedIsaItemDelegate::CodeBlockLabelPinnedToTop(const QModelIndex& source_model_index,
@@ -455,7 +468,7 @@ bool SharedIsaItemDelegate::CodeBlockLabelPinnedToTop(const QModelIndex& source_
 void SharedIsaItemDelegate::AdjustXPositionForSpannedColumns(const QModelIndex&           index,
                                                              const QSortFilterProxyModel* proxy,
                                                              QModelIndex&                 source_index,
-                                                             int&                         local_x_position)
+                                                             qreal&                       local_x_position)
 {
     if (view_->isFirstColumnSpanned(index.row(), index.parent()))
     {
@@ -718,18 +731,22 @@ void SharedIsaItemDelegate::PaintSpanned(QPainter* painter, const QStyleOptionVi
     }
 
     const std::vector<SharedIsaItemModel::Token> tokens = qvariant_cast<std::vector<SharedIsaItemModel::Token>>(source_index.data(Qt::UserRole));
-    const auto row_type    = qvariant_cast<SharedIsaItemModel::RowType>(source_index.data(SharedIsaItemModel::UserRoles::kRowTypeRole));
-    const bool is_comment  = row_type == SharedIsaItemModel::RowType::kComment;
-    int        index_x_pos = 0;
+    const auto row_type   = qvariant_cast<SharedIsaItemModel::RowType>(source_index.data(SharedIsaItemModel::UserRoles::kRowTypeRole));
+    const bool is_comment = row_type == SharedIsaItemModel::RowType::kComment;
 
-    if (is_comment)
+    // Determine where to start painting the spanning text.
+    int index_x_pos = 0;
+
+    if (is_comment || !proxy_index.isValid())
     {
+        // Paint spanning text for a comment or for a label while the op code column is not visible.
         // Start painting right after the line #.
         index_x_pos = view_->header()->sectionPosition(view_->header()->logicalIndex(1));
     }
     else
     {
-        // Start painting at op code column.
+        // Paint spanning text for a label while the op code column is visible.
+        // Start painting at the op code column.
         index_x_pos = view_->header()->sectionPosition(proxy_index.column());
     }
 
@@ -739,14 +756,14 @@ void SharedIsaItemDelegate::PaintSpanned(QPainter* painter, const QStyleOptionVi
     text_rectangle.setX(index_x_pos);
     text_rectangle.setWidth(view_->width() - text_rectangle.x());
 
-    PaintText(painter, option, proxy_index, text_rectangle, tokens, 0, is_comment);
+    PaintText(painter, option, source_index, text_rectangle, tokens, 0, is_comment);
 
     painter->restore();
 }
 
 std::pair<int, QRect> SharedIsaItemDelegate::PaintText(QPainter*                              painter,
                                                        const QStyleOptionViewItem&            option,
-                                                       const QModelIndex&                     index,
+                                                       const QModelIndex&                     source_index,
                                                        QRect                                  token_rectangle,
                                                        std::vector<SharedIsaItemModel::Token> tokens,
                                                        int                                    token_index,
@@ -754,13 +771,13 @@ std::pair<int, QRect> SharedIsaItemDelegate::PaintText(QPainter*                
 {
     if (is_comment)
     {
-        painter->drawText(token_rectangle, Qt::Alignment(Qt::AlignLeft | Qt::AlignTop), index.data(Qt::DisplayRole).toString());
+        painter->drawText(token_rectangle, Qt::Alignment(Qt::AlignLeft | Qt::AlignTop), source_index.data(Qt::DisplayRole).toString());
     }
-    else if (!index.parent().isValid())
+    else if (!source_index.parent().isValid())
     {
         if (!tokens.empty())
         {
-            const bool color_coding_enabled = index.data(SharedIsaItemModel::kLineEnabledRole).toBool();
+            const bool color_coding_enabled = source_index.data(SharedIsaItemModel::kLineEnabledRole).toBool();
             painter->save();
             PaintTokenText(tokens.front(), token_rectangle, painter, color_coding_enabled);
             painter->restore();
@@ -778,12 +795,12 @@ std::pair<int, QRect> SharedIsaItemDelegate::PaintText(QPainter*                
                                     token_rectangle,
                                     painter,
                                     option.fontMetrics,
-                                    index.parent().row(),
-                                    index.row(),
+                                    source_index.parent().row(),
+                                    source_index.row(),
                                     token_index);  // Assume 0 index for op code.
             }
 
-            const bool color_coding_enabled = index.data(SharedIsaItemModel::kLineEnabledRole).toBool();
+            const bool color_coding_enabled = source_index.data(SharedIsaItemModel::kLineEnabledRole).toBool();
 
             painter->save();
             PaintTokenText(token, token_rectangle, painter, color_coding_enabled);

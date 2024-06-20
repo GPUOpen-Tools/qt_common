@@ -31,7 +31,7 @@ void CompletionBarWidget::SetFillPercentage(qreal percentage)
 
 QSize CompletionBarWidget::sizeHint() const
 {
-    return ScalingManager::Get().Scaled(QSize(kDefaultWidth_, kDefaultHeight_));
+    return QSize(kDefaultWidth_, kDefaultHeight_);
 }
 
 void CompletionBarWidget::paintEvent(QPaintEvent* paint_event)

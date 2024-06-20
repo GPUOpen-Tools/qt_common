@@ -91,11 +91,6 @@ DoubleSliderWidget::~DoubleSliderWidget()
     disconnect(&ScalingManager::Get(), &ScalingManager::ScaleFactorChanged, this, &QSlider::updateGeometry);
 }
 
-QSize DoubleSliderWidget::sizeHint() const
-{
-    return ScalingManager::Get().Scaled(QSlider::sizeHint());
-}
-
 void DoubleSliderWidget::InitStyleOption(QStyleOptionSlider* option, DoubleSliderWidget::SpanHandle span_handle) const
 {
     QSlider::initStyleOption(option);
@@ -111,7 +106,7 @@ int DoubleSliderWidget::PixelPosToRangeValue(int pixel_position) const
     int            slider_min    = 0;
     int            slider_max    = 0;
     int            slider_length = 0;
-    const QSlider* slider      = this;
+    const QSlider* slider        = this;
     const QRect    groove_rect   = slider->style()->subControlRect(QStyle::CC_Slider, &option, QStyle::SC_SliderGroove, slider);
     const QRect    handle_rect   = slider->style()->subControlRect(QStyle::CC_Slider, &option, QStyle::SC_SliderHandle, slider);
 
@@ -137,7 +132,7 @@ void DoubleSliderWidget::HandleMousePress(const QPoint& mouse_position, QStyle::
     InitStyleOption(&option, span_handle);
 
     const QStyle::SubControl old_control = control;
-    control                             = style()->hitTestComplexControl(QStyle::CC_Slider, &option, mouse_position, this);
+    control                              = style()->hitTestComplexControl(QStyle::CC_Slider, &option, mouse_position, this);
     const QRect handle_rect              = style()->subControlRect(QStyle::CC_Slider, &option, QStyle::SC_SliderHandle, this);
 
     if (control == QStyle::SC_SliderHandle)
@@ -179,7 +174,7 @@ void DoubleSliderWidget::DrawSpan(QStylePainter* painter, const QRect& span_area
     InitStyleOption(&option);
 
     const QSlider* double_slider = this;
-    QRect          groove_rect    = double_slider->style()->subControlRect(QStyle::CC_Slider, &option, QStyle::SC_SliderGroove, double_slider);
+    QRect          groove_rect   = double_slider->style()->subControlRect(QStyle::CC_Slider, &option, QStyle::SC_SliderGroove, double_slider);
 
     if (option.orientation == Qt::Horizontal)
     {
@@ -227,11 +222,11 @@ void DoubleSliderWidget::DrawHandle(QStylePainter* painter, DoubleSliderWidget::
 
 void DoubleSliderWidget::TriggerAction(QAbstractSlider::SliderAction slider_action, bool main_action)
 {
-    int                                  slider_value    = 0;
+    int                                  slider_value     = 0;
     bool                                 no_slider_action = false;
     bool                                 up_slider_action = false;
-    const int                            min_value       = minimum();
-    const int                            max_value       = maximum();
+    const int                            min_value        = minimum();
+    const int                            max_value        = maximum();
     const DoubleSliderWidget::SpanHandle alt_control =
         (main_span_control_ == DoubleSliderWidget::kLowerHandle ? DoubleSliderWidget::kUpperHandle : DoubleSliderWidget::kLowerHandle);
 
@@ -242,7 +237,7 @@ void DoubleSliderWidget::TriggerAction(QAbstractSlider::SliderAction slider_acti
     case QAbstractSlider::SliderSingleStepAdd:
         if ((main_action && main_span_control_ == DoubleSliderWidget::kUpperHandle) || (!main_action && alt_control == DoubleSliderWidget::kUpperHandle))
         {
-            slider_value    = qBound(min_value, upper_value_ + singleStep(), max_value);
+            slider_value     = qBound(min_value, upper_value_ + singleStep(), max_value);
             up_slider_action = true;
             break;
         }
@@ -253,7 +248,7 @@ void DoubleSliderWidget::TriggerAction(QAbstractSlider::SliderAction slider_acti
     case QAbstractSlider::SliderSingleStepSub:
         if ((main_action && main_span_control_ == DoubleSliderWidget::kUpperHandle) || (!main_action && alt_control == DoubleSliderWidget::kUpperHandle))
         {
-            slider_value    = qBound(min_value, upper_value_ - singleStep(), max_value);
+            slider_value     = qBound(min_value, upper_value_ - singleStep(), max_value);
             up_slider_action = true;
             break;
         }
@@ -586,19 +581,18 @@ void DoubleSliderWidget::mousePressEvent(QMouseEvent* event)
         return;
     }
 
-
     // Neither handle was hit, so find the closest one, and then execute a mouseMoveEvent also.
 
     int new_position = PixelPosToRangeValue(Pick(event->pos()) - offset_pos_);
     if (new_position < 0.5 * (lower_pos_ + upper_pos_))
     {
         lower_pressed_control_ = QStyle::SC_SliderHandle;
-        position_ = lower_pos_;
+        position_              = lower_pos_;
     }
     else
     {
         upper_pressed_control_ = QStyle::SC_SliderHandle;
-        position_ = upper_pos_;
+        position_              = upper_pos_;
     }
 
     is_first_movement_ = true;
@@ -725,10 +719,10 @@ void DoubleSliderWidget::paintEvent(QPaintEvent* event)
     painter.drawComplexControl(QStyle::CC_Slider, option);
 
     // handle rects
-    option.sliderPosition           = lower_pos_;
+    option.sliderPosition          = lower_pos_;
     const QRect lower_handle_rect  = style()->subControlRect(QStyle::CC_Slider, &option, QStyle::SC_SliderHandle, this);
     const int   lower_handle_value = Pick(lower_handle_rect.center());
-    option.sliderPosition           = upper_pos_;
+    option.sliderPosition          = upper_pos_;
     const QRect upper_handle_rect  = style()->subControlRect(QStyle::CC_Slider, &option, QStyle::SC_SliderHandle, this);
     const int   upper_handle_value = Pick(upper_handle_rect.center());
 

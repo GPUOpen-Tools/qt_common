@@ -203,10 +203,15 @@ void SharedIsaWidget::ExpandCollapseAll(bool expand, bool resize_contents, std::
 
 SharedIsaWidget::ExpandCollapseState SharedIsaWidget::SaveExpandState()
 {
+    ExpandCollapseState expand_collapse_state;
+
+    if (proxy_model_ == nullptr)
+    {
+        return expand_collapse_state;
+    }
+
     const SharedIsaItemModel* source_model       = qobject_cast<SharedIsaItemModel*>(proxy_model_->sourceModel());
     const int                 number_code_blocks = source_model->rowCount();
-
-    ExpandCollapseState expand_collapse_state;
 
     for (int i = 0; i < number_code_blocks; i++)
     {
@@ -223,6 +228,11 @@ SharedIsaWidget::ExpandCollapseState SharedIsaWidget::SaveExpandState()
 
 void SharedIsaWidget::RestoreExpandState(ExpandCollapseState expand_collapse_state)
 {
+    if (proxy_model_ == nullptr)
+    {
+        return;
+    }
+
     const SharedIsaItemModel* source_model       = qobject_cast<SharedIsaItemModel*>(proxy_model_->sourceModel());
     const int                 number_code_blocks = source_model->rowCount();
 
@@ -256,6 +266,11 @@ void SharedIsaWidget::RestoreExpandState(ExpandCollapseState expand_collapse_sta
 
 void SharedIsaWidget::UpdateSpannedColumns()
 {
+    if (proxy_model_ == nullptr)
+    {
+        return;
+    }
+
     const QAbstractItemModel* source_model = proxy_model_->sourceModel();
 
     for (int i = 0; i < source_model->rowCount(); i++)
@@ -310,6 +325,11 @@ void SharedIsaWidget::SetGoToLineValidatorLineCount(int line_count)
 
 void SharedIsaWidget::Search()
 {
+    if (proxy_model_ == nullptr)
+    {
+        return;
+    }
+
     ui_->search_results_->setText("No results");
 
     matches_.clear();
@@ -400,6 +420,11 @@ void SharedIsaWidget::keyPressEvent(QKeyEvent* event)
 
 void SharedIsaWidget::ShowHideColumnClicked(bool checked)
 {
+    if (proxy_model_ == nullptr)
+    {
+        return;
+    }
+
     const QObject* sender = this->sender();
 
     QHeaderView* header = ui_->isa_tree_view_->header();
@@ -485,6 +510,11 @@ void SharedIsaWidget::SearchTextChanged(const QString& text)
 
 void SharedIsaWidget::SearchEntered()
 {
+    if (proxy_model_ == nullptr)
+    {
+        return;
+    }
+
     if (!matches_.isEmpty())
     {
         find_index_++;
@@ -509,6 +539,11 @@ void SharedIsaWidget::SearchEntered()
 
 void SharedIsaWidget::GoToLineEntered()
 {
+    if (proxy_model_ == nullptr)
+    {
+        return;
+    }
+
     SharedIsaItemModel* source_model = qobject_cast<SharedIsaItemModel*>(proxy_model_->sourceModel());
 
     if (source_model == nullptr)
@@ -534,6 +569,11 @@ void SharedIsaWidget::ToggleViewingOptions()
 
 void SharedIsaWidget::RefreshSearchMatchLineNumbers(const QModelIndex& index)
 {
+    if (proxy_model_ == nullptr)
+    {
+        return;
+    }
+
     Q_UNUSED(index);
 
     std::set<QModelIndex> match_source_indices;

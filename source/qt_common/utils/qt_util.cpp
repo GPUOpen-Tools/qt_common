@@ -10,10 +10,11 @@
 #include <cmath>
 
 #include <QApplication>
-#include <QGuiApplication>
 #include <QDesktopServices>
 #include <QDir>
 #include <QFileInfo>
+#include <QFontMetrics>
+#include <QGuiApplication>
 #include <QHeaderView>
 #include <QProcess>
 #include <QSettings>
@@ -296,7 +297,7 @@ namespace QtCommon
 
     int QtUtils::GetTextWidth(const QFont& font, const QString& str)
     {
-        return ScalingManager::Get().ScaledFontMetrics(font).boundingRect(str).width();
+        return QFontMetrics(font).boundingRect(str).width();
     }
 
     int QtUtils::GetPainterTextWidth(QPainter* pPainter, const QString& str)
@@ -393,7 +394,8 @@ namespace QtCommon
             out << time << " ms";
             break;
 
-        case kTimeUnitTypeSecond: {
+        case kTimeUnitTypeSecond:
+        {
             out.setRealNumberPrecision(0);
             uint64_t secs = (uint64_t)(time / 1000000000.0);
             uint64_t ms   = (uint64_t)fmod((time / 10000000.0), 100);
@@ -401,7 +403,8 @@ namespace QtCommon
         }
         break;
 
-        case kTimeUnitTypeMinute: {
+        case kTimeUnitTypeMinute:
+        {
             out.setRealNumberPrecision(0);
             uint64_t mins = (uint64_t)(time / 60000000000.0);
             uint64_t secs = (uint64_t)fmod((time / 1000000000.0), 60);
@@ -410,7 +413,8 @@ namespace QtCommon
         }
         break;
 
-        case kTimeUnitTypeHour: {
+        case kTimeUnitTypeHour:
+        {
             out.setRealNumberPrecision(0);
             uint64_t hours    = static_cast<uint64_t>(time / (60 * 60 * 1000000000.0));
             uint64_t mins     = static_cast<uint64_t>(fmod((time / (60 * 1000000000.0)), 60));
@@ -467,10 +471,10 @@ namespace QtCommon
     int QtUtils::ShowMessageBox(QWidget* parent, QMessageBox::StandardButtons buttons, QMessageBox::Icon icon, const QString& title, const QString& message)
     {
         QMessageBox message_box(parent);
-        
-    #ifdef Q_OS_WIN
+
+#ifdef Q_OS_WIN
         SetDarkWindowTitleBar(message_box.winId(), ColorTheme::Get().GetColorTheme() == kColorThemeTypeDark);
-    #endif
+#endif
 
         message_box.setWindowTitle(title);
         message_box.setText(message);
@@ -501,7 +505,7 @@ namespace QtCommon
 
     ColorThemeType QtUtils::DetectOsSetting()
     {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0) 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
         Qt::ColorScheme color_scheme = QGuiApplication::styleHints()->colorScheme();
         if (color_scheme == Qt::ColorScheme::Light)
         {
@@ -589,6 +593,9 @@ namespace QtCommon
         theme_colors_[kColorThemeTypeLight].ruler_marker_color                 = QColor(51, 51, 51);
         theme_colors_[kColorThemeTypeLight].ruler_edge_color                   = QColor(230, 230, 230);
         theme_colors_[kColorThemeTypeLight].ruler_background_color             = QColor(248, 248, 248);
+        theme_colors_[kColorThemeTypeLight].row_selected_color                 = QColor(143, 193, 231);
+        theme_colors_[kColorThemeTypeLight].window_background_color            = Qt::white;
+        theme_colors_[kColorThemeTypeLight].graphics_scene_background_color    = Qt::white;
         theme_colors_[kColorThemeTypeLight].link_button_style_sheet            = kLinkButtonStylesheet;
 
         theme_colors_[kColorThemeTypeDark].graphics_scene_text_color          = QColor(240, 240, 240);
@@ -601,31 +608,39 @@ namespace QtCommon
         theme_colors_[kColorThemeTypeDark].ruler_marker_color                 = QColor(230, 230, 230);
         theme_colors_[kColorThemeTypeDark].ruler_edge_color                   = QColor(50, 50, 50);
         theme_colors_[kColorThemeTypeDark].ruler_background_color             = QColor(20, 20, 20);
+        theme_colors_[kColorThemeTypeDark].row_selected_color                 = QColor(40, 80, 160, 140);
+        theme_colors_[kColorThemeTypeDark].window_background_color            = QColor(35, 35, 35);
+        theme_colors_[kColorThemeTypeDark].graphics_scene_background_color    = QColor(20, 20, 20);
         theme_colors_[kColorThemeTypeDark].link_button_style_sheet            = kDarkLinkButtonStylesheet;
 
-        QColor   white_color      = Qt::white;
-        QColor   very_light_color = QColor(240, 240, 240);
-        QColor   black_text       = Qt::black;
-        QColor   disabled_color   = Qt::gray;
+        QColor white_color      = Qt::white;
+        QColor very_light_color = QColor(240, 240, 240);
+        QColor black_text       = Qt::black;
+        QColor disabled_color   = Qt::gray;
+        QColor tooltip_color    = QColor(240, 230, 200);
 
         palette_[kColorThemeTypeLight].setColor(QPalette::Window, white_color);
         palette_[kColorThemeTypeLight].setColor(QPalette::WindowText, black_text);
         palette_[kColorThemeTypeLight].setColor(QPalette::Base, white_color);
         palette_[kColorThemeTypeLight].setColor(QPalette::AlternateBase, very_light_color);
         palette_[kColorThemeTypeLight].setColor(QPalette::Text, black_text);
+        palette_[kColorThemeTypeLight].setColor(QPalette::PlaceholderText, disabled_color);
         palette_[kColorThemeTypeLight].setColor(QPalette::Disabled, QPalette::Text, disabled_color);
         palette_[kColorThemeTypeLight].setColor(QPalette::Button, white_color);
         palette_[kColorThemeTypeLight].setColor(QPalette::ButtonText, black_text);
         palette_[kColorThemeTypeLight].setColor(QPalette::Disabled, QPalette::ButtonText, disabled_color);
         palette_[kColorThemeTypeLight].setColor(QPalette::BrightText, Qt::red);
         palette_[kColorThemeTypeLight].setColor(QPalette::Link, QColor(0, 0, 255));
-        palette_[kColorThemeTypeLight].setColor(QPalette::Highlight, QColor(30, 120, 230));
-        palette_[kColorThemeTypeLight].setColor(QPalette::HighlightedText, Qt::white);
+        palette_[kColorThemeTypeLight].setColor(QPalette::Highlight, QColor(143, 193, 231));
+        palette_[kColorThemeTypeLight].setColor(QPalette::HighlightedText, black_text);
         palette_[kColorThemeTypeLight].setColor(QPalette::Disabled, QPalette::HighlightedText, disabled_color);
         palette_[kColorThemeTypeLight].setColor(QPalette::Disabled, QPalette::WindowText, disabled_color);
+        palette_[kColorThemeTypeLight].setColor(QPalette::ToolTipBase, tooltip_color);
+        palette_[kColorThemeTypeLight].setColor(QPalette::ToolTipText, black_text);
 
         QColor very_dark_color = QColor(20, 20, 20);
         QColor dark_color      = QColor(35, 35, 35);
+        QColor less_dark_color = QColor(60, 60, 60);
         QColor white_text      = QColor(240, 240, 240);
 
         palette_[kColorThemeTypeDark].setColor(QPalette::Window, dark_color);
@@ -633,6 +648,7 @@ namespace QtCommon
         palette_[kColorThemeTypeDark].setColor(QPalette::Base, dark_color);
         palette_[kColorThemeTypeDark].setColor(QPalette::AlternateBase, very_dark_color);
         palette_[kColorThemeTypeDark].setColor(QPalette::Text, white_text);
+        palette_[kColorThemeTypeDark].setColor(QPalette::PlaceholderText, disabled_color);
         palette_[kColorThemeTypeDark].setColor(QPalette::Disabled, QPalette::Text, disabled_color);
         palette_[kColorThemeTypeDark].setColor(QPalette::Button, dark_color);
         palette_[kColorThemeTypeDark].setColor(QPalette::ButtonText, white_text);
@@ -643,6 +659,8 @@ namespace QtCommon
         palette_[kColorThemeTypeDark].setColor(QPalette::HighlightedText, Qt::white);
         palette_[kColorThemeTypeDark].setColor(QPalette::Disabled, QPalette::HighlightedText, disabled_color);
         palette_[kColorThemeTypeDark].setColor(QPalette::Disabled, QPalette::WindowText, disabled_color);
+        palette_[kColorThemeTypeDark].setColor(QPalette::ToolTipBase, less_dark_color);
+        palette_[kColorThemeTypeDark].setColor(QPalette::ToolTipText, white_text);
 
         theme_type_ = kColorThemeTypeLight;
     }

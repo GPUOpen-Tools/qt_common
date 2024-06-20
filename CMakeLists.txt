@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.24)
 project(QtCommon)
 
 # Define version information
-set(QTCOMMON_MAJOR_VERSION 3)
-set(QTCOMMON_MINOR_VERSION 14)
+set(QTCOMMON_MAJOR_VERSION 4)
+set(QTCOMMON_MINOR_VERSION 0)
 if (NOT QTCOMMON_PATCH_NUMBER)
     set(QTCOMMON_PATCH_NUMBER 0)
 endif ()

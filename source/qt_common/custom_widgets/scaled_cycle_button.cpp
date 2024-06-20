@@ -6,6 +6,7 @@
 //=============================================================================
 #include "scaled_cycle_button.h"
 
+#include <QFontMetrics>
 #include <QStyle>
 
 #include "scaling_manager.h"
@@ -93,15 +94,13 @@ QSize ScaledCycleButton::sizeHint() const
 {
     ensurePolished();
 
-    // Create a scaled FontMetrics for measuring the resized fonts
-    ScalingManager&     sm             = ScalingManager::Get();
-    const QFontMetrics& scaled_metrics = sm.ScaledFontMetrics(font());
+    const QFontMetrics& font_metrics = QFontMetrics(font());
 
     // Find the longest string used by the cycle button.
     QSize largest_scaled_size;
     for (const auto& text_string : text_items_)
     {
-        QSize scaled_size = scaled_metrics.size(0, text_string);
+        QSize scaled_size = font_metrics.size(0, text_string);
         if (scaled_size.width() > largest_scaled_size.width())
         {
             largest_scaled_size = scaled_size;
@@ -110,7 +109,7 @@ QSize ScaledCycleButton::sizeHint() const
     QSize size_hint = largest_scaled_size;
 
     // Adjust the button size for margins.
-    int button_margin = sm.Scaled(style()->pixelMetric(QStyle::PM_ButtonMargin));
+    int button_margin = style()->pixelMetric(QStyle::PM_ButtonMargin);
     size_hint.setWidth(size_hint.width() + button_margin * 2);
     size_hint.setHeight(size_hint.height() + button_margin * 2);
 

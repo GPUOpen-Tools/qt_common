@@ -301,21 +301,14 @@ void SharedIsaTreeView::ReplayBranchOrLabelSelection(QModelIndex branch_label_so
 
 void SharedIsaTreeView::drawRow(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
 {
-    static bool alternate_row = false;
-
-    const QColor background_row_color = QtCommon::QtUtils::ColorTheme::Get().GetCurrentThemeColors().isa_background_row_color;
-
+    const bool   even_row               = ((index.data(Qt::ItemDataRole::DisplayRole).toInt()) % 2) == 0;  // Assume first column / line number column.
+    const QColor background_row_color   = QtCommon::QtUtils::ColorTheme::Get().GetCurrentThemeColors().isa_background_row_color;
     const QColor search_match_row_color = QtCommon::QtUtils::ColorTheme::Get().GetCurrentThemeColors().isa_search_match_row_color;
 
     // Manually paint a gray background color for every other row.
 
     const QRect view_index_visual_rect = visualRect(index);
     const int   view_index_y_position  = view_index_visual_rect.y();
-
-    if (view_index_y_position == 0)
-    {
-        alternate_row = false;
-    }
 
     bool code_block_pinned = false;
 
@@ -329,12 +322,10 @@ void SharedIsaTreeView::drawRow(QPainter* painter, const QStyleOptionViewItem& o
     {
         painter->fillRect(option.rect, search_match_row_color);
     }
-    else if (alternate_row)
+    else if (even_row)
     {
         painter->fillRect(option.rect, background_row_color);
     }
-
-    alternate_row = !alternate_row;
 
     // Paint the column separators.
     if (paint_column_separators_)
