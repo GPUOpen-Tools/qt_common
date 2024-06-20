@@ -41,11 +41,11 @@ ArrowIconComboBox::ArrowIconComboBox(QWidget* parent)
 
     CreateVertices();
 
-    use_fixed_font_color_ = false;
+    use_fixed_font_color_   = false;
     use_fixed_border_color_ = false;
     font_color_             = QtCommon::QtUtils::ColorTheme::Get().GetCurrentThemeColors().graphics_scene_text_color;
-    border_color_ = QtCommon::QtUtils::ColorTheme::Get().GetCurrentThemeColors().arrow_icon_border_color;
-    color_        = Qt::GlobalColor::gray;
+    border_color_           = QtCommon::QtUtils::ColorTheme::Get().GetCurrentThemeColors().arrow_icon_border_color;
+    color_                  = Qt::GlobalColor::gray;
 
     connect(&ScalingManager::Get(), &ScalingManager::ScaleFactorChanged, this, &ArrowIconComboBox::OnScaleFactorChanged);
 }
@@ -348,6 +348,76 @@ void ArrowIconComboBox::SetRowHidden(int list_index, bool hidden)
     Q_ASSERT(list_index >= 0 && list_index < item_list_->count());
 
     item_list_->setRowHidden(list_index, hidden);
+}
+
+void ArrowIconComboBox::SetDisabled(int list_index, bool disabled)
+{
+    // Right now this function doesn't support single select items from being disabled since there is not a use case for it.
+    Q_ASSERT(allow_multi_select_);
+    Q_ASSERT(item_list_ != nullptr);
+
+    if (!allow_multi_select_ || list_index < 0 || list_index >= item_list_->count())
+    {
+        return;
+    }
+
+    QListWidgetItem* disable_item          = item_list_->item(list_index);
+    QCheckBox*       disable_item_checkbox = qobject_cast<QCheckBox*>(item_list_->itemWidget(disable_item));
+    disable_item_checkbox->setDisabled(disabled);
+}
+
+int ArrowIconComboBox::LastCheckedIndex()
+{
+    // Don't allow the last checked index to be called for single select since it doesn't make sense there.
+    Q_ASSERT(allow_multi_select_);
+    Q_ASSERT(item_list_ != nullptr);
+
+    // If there is an all button, unchecking everything has to be allowed (by unchecking the all option).
+    if (!allow_multi_select_ || all_choice_added_)
+    {
+        return -1;
+    }
+
+    int num_checked_items = 0;
+    int last_checked_item = -1;
+
+    // Loop through all indices to find if there is a last checked item.
+    QListWidgetItem* current_item = nullptr;
+    for (int i = 0; i < item_list_->count(); i++)
+    {
+        current_item = item_list_->item(i);
+        QCheckBox* item_checkbox = qobject_cast<QCheckBox*>(item_list_->itemWidget(current_item));
+        
+        // If there is a disabled item (that is checked), return it's index to be re enabled.
+        // If there are other reasons why a checked item may be disabled besides it being the 
+        // last checked item, this will have unintended results.
+        if (!item_checkbox->isEnabled() && IsChecked(i))
+        {
+            return i;
+        }
+        
+        // Count the number of checked items.
+        if (IsChecked(i))
+        {
+            num_checked_items++;
+            last_checked_item = i;
+
+            // If there 2 checked items and neither is disabled, return -1.
+            if (num_checked_items > 1)
+            {
+                return -1;
+            }
+        }
+    }
+
+    //If there is 1 checked item, return it's index.
+    if (num_checked_items == 1)
+    {
+        return last_checked_item;
+    }
+
+    // This should be impossible, but if there are 0 checked items, return -1.
+    return -1;
 }
 
 void ArrowIconComboBox::SetMaximumHeight(int height)
@@ -949,7 +1019,7 @@ void ArrowIconComboBox::paintEvent(QPaintEvent* event)
 
 void ArrowIconComboBox::SetBorderColor(const QColor& color)
 {
-    border_color_ = color;
+    border_color_           = color;
     use_fixed_border_color_ = true;
 }
 
@@ -967,7 +1037,7 @@ void ArrowIconComboBox::SetColor(const QColor& color)
 
 void ArrowIconComboBox::SetFontColor(const QColor& color)
 {
-    font_color_ = color;
+    font_color_           = color;
     use_fixed_font_color_ = true;
 
     update();

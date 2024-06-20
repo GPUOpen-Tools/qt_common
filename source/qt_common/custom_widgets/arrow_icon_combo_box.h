@@ -138,6 +138,23 @@ public:
     /// \param hidden     The state of the row.
     void SetRowHidden(int list_index, bool hidden);
 
+    /// @Brief Disables/enables the item at the given index. If the index is invalid, does nothing.
+    /// 
+    /// @param list_index The index of the item to be disabled/enabled.
+    /// @param disabled   Whether the item should be disabled (true) or enabled (false).
+    void SetDisabled(int list_index, bool disabled);
+
+    /// @Brief Gets the index of the last checked item if there is one.
+    ///        Helper function to aid in disabling the last checked item.
+    /// 
+    /// @Return Returns -1 if there are multiple checked items and none are disabled.
+    ///         If there is only 1 item checked, it returns the index of that item. If there
+    ///         are multiple items checked, but 1 is disabled, it returns the index of that
+    ///         item. This is to help in the situation where a second item was just checked
+    ///         and the disabled item needs to be re-enabled. This function assumes only 1
+    ///         item can be disabled at a time.
+    int LastCheckedIndex();
+
     /// Update widget state
     void Update();
 

@@ -3,7 +3,7 @@ project(QtCommon)
 
 # Define version information
 set(QTCOMMON_MAJOR_VERSION 3)
-set(QTCOMMON_MINOR_VERSION 12)
+set(QTCOMMON_MINOR_VERSION 13)
 if (NOT QTCOMMON_PATCH_NUMBER)
     set(QTCOMMON_PATCH_NUMBER 0)
 endif ()
@@ -31,11 +31,6 @@ add_subdirectory(source/qt_common/custom_widgets)
 # Utilities
 add_subdirectory(source/qt_common/utils)
 
-if (BUILD_TESTS)
-    # Tests
-    add_subdirectory(test)
-endif ()
-
 # Packaging
 set(CPACK_ARCHIVE_COMPONENT_INSTALL ON)
 set(CPACK_COMPONENTS_GROUPING IGNORE)
@@ -46,8 +41,3 @@ else ()
     set(CPACK_ARCHIVE_GUITEST_FILE_NAME "QtCommon_GuiTest_${QTCOMMON_MAJOR_VERSION}.${QTCOMMON_MINOR_VERSION}.${QTCOMMON_PATCH_NUMBER}.${QTCOMMON_BUILD_NUMBER}")
 endif ()
 
-include(CPack)
-
-cpack_add_component(GuiTest
-        DISPLAY_NAME "Gui Test"
-        DESCRIPTION "QtCommon Gui Tests")

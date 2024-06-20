@@ -622,6 +622,7 @@ namespace QtCommon
         palette_[kColorThemeTypeLight].setColor(QPalette::Highlight, QColor(30, 120, 230));
         palette_[kColorThemeTypeLight].setColor(QPalette::HighlightedText, Qt::white);
         palette_[kColorThemeTypeLight].setColor(QPalette::Disabled, QPalette::HighlightedText, disabled_color);
+        palette_[kColorThemeTypeLight].setColor(QPalette::Disabled, QPalette::WindowText, disabled_color);
 
         QColor very_dark_color = QColor(20, 20, 20);
         QColor dark_color      = QColor(35, 35, 35);
@@ -641,6 +642,7 @@ namespace QtCommon
         palette_[kColorThemeTypeDark].setColor(QPalette::Highlight, QColor(40, 80, 160, 140));
         palette_[kColorThemeTypeDark].setColor(QPalette::HighlightedText, Qt::white);
         palette_[kColorThemeTypeDark].setColor(QPalette::Disabled, QPalette::HighlightedText, disabled_color);
+        palette_[kColorThemeTypeDark].setColor(QPalette::Disabled, QPalette::WindowText, disabled_color);
 
         theme_type_ = kColorThemeTypeLight;
     }
