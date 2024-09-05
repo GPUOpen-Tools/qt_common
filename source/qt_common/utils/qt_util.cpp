@@ -159,8 +159,8 @@ namespace QtCommon
         QHeaderView* header = table->horizontalHeader();
         if (header != nullptr)
         {
-            table->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-            const int    column_count = table->horizontalHeader()->count();
+            header->setSectionResizeMode(QHeaderView::ResizeToContents);
+            const int    column_count = header->count();
             QVector<int> column_widths(column_count);
 
             QAbstractItemModel* model = (QAbstractItemModel*)table->model();
@@ -472,10 +472,6 @@ namespace QtCommon
     {
         QMessageBox message_box(parent);
 
-#ifdef Q_OS_WIN
-        SetDarkWindowTitleBar(message_box.winId(), ColorTheme::Get().GetColorTheme() == kColorThemeTypeDark);
-#endif
-
         message_box.setWindowTitle(title);
         message_box.setText(message);
         message_box.setStandardButtons(buttons);
@@ -484,24 +480,6 @@ namespace QtCommon
         // Display the message box
         return message_box.exec();
     }
-
-#ifdef Q_OS_WIN
-    void QtUtils::SetDarkWindowTitleBar(WId window_id, bool set_dark)
-    {
-        HWND hwnd = reinterpret_cast<HWND>(window_id);
-
-        HMODULE                         user32 = GetModuleHandleW(L"user32.dll");
-        fnSetWindowCompositionAttribute SetWindowCompositionAttribute =
-            reinterpret_cast<fnSetWindowCompositionAttribute>(GetProcAddress(user32, "SetWindowCompositionAttribute"));
-        BOOL dark = TRUE;
-        if (!set_dark)
-        {
-            dark = FALSE;
-        }
-        WindowCompositioAttributeData attrib_data = {kUseDarkModeColors, &dark, sizeof(dark)};
-        SetWindowCompositionAttribute(hwnd, &attrib_data);
-    }
-#endif
 
     ColorThemeType QtUtils::DetectOsSetting()
     {
@@ -613,11 +591,11 @@ namespace QtCommon
         theme_colors_[kColorThemeTypeDark].graphics_scene_background_color    = QColor(20, 20, 20);
         theme_colors_[kColorThemeTypeDark].link_button_style_sheet            = kDarkLinkButtonStylesheet;
 
-        QColor white_color      = Qt::white;
-        QColor very_light_color = QColor(240, 240, 240);
-        QColor black_text       = Qt::black;
-        QColor disabled_color   = Qt::gray;
-        QColor tooltip_color    = QColor(240, 230, 200);
+        const QColor white_color      = Qt::white;
+        const QColor very_light_color = QColor(240, 240, 240);
+        const QColor black_text       = Qt::black;
+        const QColor disabled_color   = Qt::gray;
+        const QColor tooltip_color    = QColor(240, 230, 200);
 
         palette_[kColorThemeTypeLight].setColor(QPalette::Window, white_color);
         palette_[kColorThemeTypeLight].setColor(QPalette::WindowText, black_text);
@@ -638,10 +616,17 @@ namespace QtCommon
         palette_[kColorThemeTypeLight].setColor(QPalette::ToolTipBase, tooltip_color);
         palette_[kColorThemeTypeLight].setColor(QPalette::ToolTipText, black_text);
 
-        QColor very_dark_color = QColor(20, 20, 20);
-        QColor dark_color      = QColor(35, 35, 35);
-        QColor less_dark_color = QColor(60, 60, 60);
-        QColor white_text      = QColor(240, 240, 240);
+        // The following should match Qt's default fusion palette for Light Mode on Windows
+        palette_[kColorThemeTypeLight].setColor(QPalette::Light, QColor(255, 255, 255, 255));
+        palette_[kColorThemeTypeLight].setColor(QPalette::Midlight, QColor(202, 202, 202, 255));
+        palette_[kColorThemeTypeLight].setColor(QPalette::Mid, QColor(184, 184, 184, 255));
+        palette_[kColorThemeTypeLight].setColor(QPalette::Dark, QColor(159, 159, 159, 255));
+
+        const QColor very_dark_color = QColor(20, 20, 20);
+        const QColor dark_color      = QColor(35, 35, 35);
+        const QColor less_dark_color = QColor(60, 60, 60);
+        const QColor white_text      = QColor(240, 240, 240);
+        const QColor highlight_dark  = QColor(40, 80, 160, 140);
 
         palette_[kColorThemeTypeDark].setColor(QPalette::Window, dark_color);
         palette_[kColorThemeTypeDark].setColor(QPalette::WindowText, white_text);
@@ -655,12 +640,18 @@ namespace QtCommon
         palette_[kColorThemeTypeDark].setColor(QPalette::Disabled, QPalette::ButtonText, disabled_color);
         palette_[kColorThemeTypeDark].setColor(QPalette::BrightText, Qt::red);
         palette_[kColorThemeTypeDark].setColor(QPalette::Link, QColor(42, 130, 218));
-        palette_[kColorThemeTypeDark].setColor(QPalette::Highlight, QColor(40, 80, 160, 140));
+        palette_[kColorThemeTypeDark].setColor(QPalette::Highlight, highlight_dark);
         palette_[kColorThemeTypeDark].setColor(QPalette::HighlightedText, Qt::white);
         palette_[kColorThemeTypeDark].setColor(QPalette::Disabled, QPalette::HighlightedText, disabled_color);
         palette_[kColorThemeTypeDark].setColor(QPalette::Disabled, QPalette::WindowText, disabled_color);
         palette_[kColorThemeTypeDark].setColor(QPalette::ToolTipBase, less_dark_color);
         palette_[kColorThemeTypeDark].setColor(QPalette::ToolTipText, white_text);
+
+        // The following should match Qt's default fusion palette values for Dark Mode on Windows
+        palette_[kColorThemeTypeDark].setColor(QPalette::Light, QColor(75, 75, 75, 255));
+        palette_[kColorThemeTypeDark].setColor(QPalette::Midlight, QColor(42, 42, 42, 255));
+        palette_[kColorThemeTypeDark].setColor(QPalette::Mid, QColor(38, 38, 38, 255));
+        palette_[kColorThemeTypeDark].setColor(QPalette::Dark, QColor(33, 33, 33, 255));
 
         theme_type_ = kColorThemeTypeLight;
     }

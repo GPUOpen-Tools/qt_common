@@ -22,6 +22,8 @@ NavigationListWidget::NavigationListWidget(QWidget* parent)
     SetStyleSheet();
 
     connect(&ScalingManager::Get(), &ScalingManager::ScaleFactorChanged, this, &NavigationListWidget::OnScaleFactorChanged);
+
+    connect(&QtCommon::QtUtils::ColorTheme::Get(), &QtCommon::QtUtils::ColorTheme::ColorThemeUpdated, this, &NavigationListWidget::SetStyleSheet);
 }
 
 NavigationListWidget::~NavigationListWidget()

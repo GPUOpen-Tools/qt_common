@@ -121,13 +121,6 @@ namespace QtCommon
         /// \return message box exec result
         int ShowMessageBox(QWidget* parent, QMessageBox::StandardButtons buttons, QMessageBox::Icon icon, const QString& title, const QString& message);
 
-#ifdef Q_OS_WIN
-        /// \brief Helper function to set the title bar to be dark in windows
-        /// \param window_id the window id
-        /// \param set_dark whether the window title bar should be set to dark. 
-        void SetDarkWindowTitleBar(WId window_id, bool set_dark = true);
-#endif
-
         /// \brief Detects the app color theme settings of the current OS
         /// \return The app color theme of the OS. Returns light theme by default.
         ColorThemeType DetectOsSetting();

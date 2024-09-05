@@ -7,8 +7,8 @@
 #ifndef QTCOMMON_CUSTOM_WIDGETS_CHECK_BOX_WIDGET_H_
 #define QTCOMMON_CUSTOM_WIDGETS_CHECK_BOX_WIDGET_H_
 
-#include <QObject>
 #include <QCheckBox>
+#include <QObject>
 
 /// Custom CheckBox which handles DPI scale changes, and assumes
 /// a 2:1 width:height ratio for the indicator. The size of the
@@ -16,6 +16,13 @@
 class CheckBoxWidget : public QCheckBox
 {
     Q_OBJECT
+
+    // This custom check box overrides the behavior of the associated text label.
+    // The standard setText() method is used to change the state of the checkbox if the
+    // text matches the ON or OFF text strings.  In order to use the default behavior
+    // of the QCheckBox, set the "label_text" property to the desired string.  This
+    // will change the ON and OFF text strings to the "label_text" value.
+    Q_PROPERTY(QString label_text READ text WRITE SetLabelText);
 
 public:
     /// Explicit constructor
@@ -36,6 +43,10 @@ public:
     /// Update the indicator size to reflect the current font metrics.
     /// If the font is changed programmatically, this should be called immediately after.
     void UpdateIndicatorSize();
+
+    /// Setter for label_text property.
+    /// \param text - The new value for the text label.
+    void SetLabelText(const QString& text);
 
     /// Override setText
     /// This ensures that the text of the button is properly updated, even if the

@@ -489,7 +489,7 @@ void SharedIsaWidget::ShowHideColumnClicked(bool checked)
         child->setEnabled(true);
     }
 
-    if (check_count == 1)
+    if (check_count == 1 && nullptr != last_checked)
     {
         last_checked->setEnabled(false);
     }

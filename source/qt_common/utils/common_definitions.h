@@ -121,4 +121,15 @@ enum ColorThemeType
     kColorThemeTypeCount  ///< Number of theme types.
 };
 
+namespace QtCommon::QtUtils
+{
+    /// @brief Defines typesafe color options that map to ColorThemeType
+    enum class ColorThemeOption : uint8_t
+    {
+        kLight = kColorThemeTypeLight,
+        kDark  = kColorThemeTypeDark,
+        kSystem
+    };
+}
+
 #endif  // QTCOMMON_UTILS_COMMON_DEFINITIONS_H_

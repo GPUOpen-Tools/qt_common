@@ -127,3 +127,10 @@ void CheckBoxWidget::StateChanged(int checkbox_state)
         Q_ASSERT("Unsupported CheckBox state");
     }
 }
+
+/// Setter for label_text property
+void CheckBoxWidget::SetLabelText(const QString& text)
+{
+    SetOnText(text);
+    SetOffText(text);
+}

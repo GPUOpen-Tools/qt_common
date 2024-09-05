@@ -301,7 +301,16 @@ void SharedIsaTreeView::ReplayBranchOrLabelSelection(QModelIndex branch_label_so
 
 void SharedIsaTreeView::drawRow(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
 {
-    const bool   even_row               = ((index.data(Qt::ItemDataRole::DisplayRole).toInt()) % 2) == 0;  // Assume first column / line number column.
+    int row_height = option.rect.height();
+    if (row_height == 0)
+    {
+        // If the row height is zero we wouldn't paint anything anyway.
+        return;
+    }
+
+    int y_coordinate_row = option.rect.y() / row_height;
+
+    const bool   even_row               = (y_coordinate_row % 2) == 0;  // Assume first column / line number column.
     const QColor background_row_color   = QtCommon::QtUtils::ColorTheme::Get().GetCurrentThemeColors().isa_background_row_color;
     const QColor search_match_row_color = QtCommon::QtUtils::ColorTheme::Get().GetCurrentThemeColors().isa_search_match_row_color;
 
@@ -332,23 +341,26 @@ void SharedIsaTreeView::drawRow(QPainter* painter, const QStyleOptionViewItem& o
     {
         const QAbstractItemModel* proxy_model = index.model();
 
-        int column_x_pos = -horizontalScrollBar()->value();
-        for (int i = 0; i < proxy_model->columnCount(); i++)
+        if (proxy_model != nullptr)
         {
-            QRect index_rect   = option.rect;
-            int   column_width = header()->sectionSize(header()->logicalIndex(i));
+            int column_x_pos = -horizontalScrollBar()->value();
+            for (int i = 0; i < proxy_model->columnCount(); i++)
+            {
+                QRect index_rect   = option.rect;
+                int   column_width = header()->sectionSize(header()->logicalIndex(i));
 
-            index_rect.setX(column_x_pos);
-            index_rect.setWidth(column_width);
+                index_rect.setX(column_x_pos);
+                index_rect.setWidth(column_width);
 
-            painter->save();
-            auto pen = painter->pen();
-            pen.setColor(QtCommon::QtUtils::ColorTheme::Get().GetCurrentThemeColors().column_separator_color);
-            painter->setPen(pen);
-            painter->drawLine(index_rect.topRight(), index_rect.bottomRight());
-            painter->restore();
+                painter->save();
+                auto pen = painter->pen();
+                pen.setColor(QtCommon::QtUtils::ColorTheme::Get().GetCurrentThemeColors().column_separator_color);
+                painter->setPen(pen);
+                painter->drawLine(index_rect.topRight(), index_rect.bottomRight());
+                painter->restore();
 
-            column_x_pos += column_width;
+                column_x_pos += column_width;
+            }
         }
     }
 
@@ -506,30 +518,28 @@ void SharedIsaTreeView::ScrollBarScrolled(int value)
 {
     Q_UNUSED(value);
 
-    QVector<int> roles;
-    roles.push_back(Qt::DisplayRole);
-
-    QAbstractItemModel* model        = this->model();
-    const QModelIndex   top_left     = indexAt(QPoint(0, 0));
-    const QModelIndex   bottom_right = indexAt(QPoint(viewport()->width() - 1, viewport()->height() - 1));
-
-    const QModelIndex last_pinned_parent_index = model->index(last_pinned_row_.first, 0, QModelIndex());
-    const QModelIndex last_pinned_index        = model->index(last_pinned_row_.second, 0, last_pinned_parent_index);
-
-    if (last_pinned_index.isValid() && last_pinned_index.model() == model)
+    QAbstractItemModel* model = this->model();
+    if (nullptr != model)
     {
-        setFirstColumnSpanned(last_pinned_index.row(), last_pinned_index.parent(), false);
-    }
-    if (!isFirstColumnSpanned(top_left.row(), top_left.parent()))
-    {
-        setFirstColumnSpanned(top_left.row(), top_left.parent(), true);
-        last_pinned_row_ = std::pair<int, int>(top_left.parent().row(), top_left.row());
-    }
-    else
-    {
-        ClearLastPinnedndex();
-    }
+        const QModelIndex top_left = indexAt(QPoint(0, 0));
 
-    // Notify the model/view/controller to refresh all visible rows.
-    emit model->dataChanged(top_left, bottom_right, roles);
+        const QModelIndex last_pinned_parent_index = model->index(last_pinned_row_.first, 0, QModelIndex());
+        const QModelIndex last_pinned_index        = model->index(last_pinned_row_.second, 0, last_pinned_parent_index);
+
+        if (last_pinned_index.isValid() && last_pinned_index.model() == model)
+        {
+            setFirstColumnSpanned(last_pinned_index.row(), last_pinned_index.parent(), false);
+        }
+        if (!isFirstColumnSpanned(top_left.row(), top_left.parent()))
+        {
+            setFirstColumnSpanned(top_left.row(), top_left.parent(), true);
+            last_pinned_row_ = std::pair<int, int>(top_left.parent().row(), top_left.row());
+        }
+        else
+        {
+            ClearLastPinnedndex();
+        }
+    }
+    // Notify the viewport to refresh.
+    viewport()->update();
 }

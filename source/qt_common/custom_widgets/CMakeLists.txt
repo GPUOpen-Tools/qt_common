@@ -7,12 +7,17 @@ set(CMAKE_AUTOUIC ON)
 # Add all header and source files within the directory to the library.
 file (GLOB CPP_INC
     "arrow_icon_combo_box.h"
+    "banner_widget.h"
     "check_box_widget.h"
     "colored_legend_graphics_view.h"
     "colored_legend_scene.h"
     "completion_bar_widget.h"
     "donut_pie_widget.h"
     "double_slider_widget.h"
+    "driver_overrides_model.h"
+    "driver_overrides_notification_banner.h"
+    "driver_overrides_notification_config_widget.h"
+    "driver_overrides_tree_widget.h"
     "elided_line_label.h"
     "expanding_scroll_area.h"
     "file_loading_widget.h"
@@ -38,6 +43,7 @@ file (GLOB CPP_INC
     "scaled_header_view.h"
     "scaled_label.h"
     "scaled_line_edit.h"
+    "scaled_link_label.h"
     "scaled_menu_bar.h"
     "scaled_push_button.h"
     "scaled_spin_box.h"
@@ -61,18 +67,26 @@ file (GLOB CPP_INC
 
 # Add any .ui  files
 file (GLOB UI_SRC
+    "banner_widget.ui"
+    "driver_overrides_notification_config_widget.ui"
+    "driver_overrides_tree_widget.ui"
     "message_overlay.ui"
 )
 
 # Add all source files found within this directory.
 file (GLOB CPP_SRC
     "arrow_icon_combo_box.cpp"
+    "banner_widget.cpp"
     "check_box_widget.cpp"
     "colored_legend_graphics_view.cpp"
     "colored_legend_scene.cpp"
     "completion_bar_widget.cpp"
     "donut_pie_widget.cpp"
     "double_slider_widget.cpp"
+    "driver_overrides_model.cpp"
+    "driver_overrides_notification_banner.cpp"
+    "driver_overrides_notification_config_widget.cpp"
+    "driver_overrides_tree_widget.cpp"
     "elided_line_label.cpp"
     "expanding_scroll_area.cpp"
     "file_loading_widget.cpp"
@@ -98,6 +112,7 @@ file (GLOB CPP_SRC
     "scaled_header_view.cpp"
     "scaled_label.cpp"
     "scaled_line_edit.cpp"
+    "scaled_link_label.cpp"
     "scaled_menu_bar.cpp"
     "scaled_push_button.cpp"
     "scaled_spin_box.cpp"
