@@ -1,5 +1,5 @@
 //=============================================================================
-/// Copyright (c) 2019-2021 Advanced Micro Devices, Inc. All rights reserved.
+/// Copyright (c) 2019-2025 Advanced Micro Devices, Inc. All rights reserved.
 /// @author AMD Developer Tools Team
 /// @file
 /// @brief Scaling wrapper for QPushButton objects.

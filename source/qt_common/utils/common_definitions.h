@@ -1,5 +1,5 @@
 //=============================================================================
-/// Copyright (c) 2017-2020 Advanced Micro Devices, Inc. All rights reserved.
+/// Copyright (c) 2017-2025 Advanced Micro Devices, Inc. All rights reserved.
 /// \author AMD Developer Tools Team
 /// \file
 /// \brief  A set of common definitions used across multiple QtCommon components.
@@ -94,8 +94,10 @@ struct DefaultThemeColors
     QColor row_selected_color;                  ///< Background color for a row that has been selected in a table or tree.
     QColor window_background_color;             ///< Background color for for the window.
     QColor graphics_scene_background_color;     ///< Background color for for the graphics scenes.
+    QColor line_correlation_highlight_color;    ///< Highlight color for line correlation.
 
     QString link_button_style_sheet;  ///< Default link_button style sheet.
+
 };
 
 enum TimeUnitType

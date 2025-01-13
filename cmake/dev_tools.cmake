@@ -1,5 +1,5 @@
 #######################################################################################################################
-### Copyright (c) 2019-2023 Advanced Micro Devices, Inc. All rights reserved.
+### Copyright (c) 2019-2025 Advanced Micro Devices, Inc. All rights reserved.
 ### \author AMD Developer Tools Team
 #######################################################################################################################
 
@@ -49,8 +49,6 @@ function(devtools_target_options name)
                 /wd4127
 
                 # Disable warnings about deprecated features
-                #   See: https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warning-level-3-c4996?view=vs-2019
-                # This happens when using later versions of Qt than RDP defaults to.
                 /wd4996
                 )
     else ()

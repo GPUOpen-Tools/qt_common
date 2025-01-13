@@ -3,6 +3,8 @@
 *.orig
 *.swp
 __pycache__/
+build/linux
+build/win
 test/build/linux
 test/build/mac
 test/build/win

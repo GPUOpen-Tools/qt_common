@@ -1,5 +1,5 @@
 ﻿//=============================================================================
-/// Copyright (c) 2017-2020 Advanced Micro Devices, Inc. All rights reserved.
+/// Copyright (c) 2017-2025 Advanced Micro Devices, Inc. All rights reserved.
 /// \author AMD Developer Tools Team
 /// \file
 /// \brief  Header for QtUtil which holds useful utility functions.
@@ -574,7 +574,9 @@ namespace QtCommon
         theme_colors_[kColorThemeTypeLight].row_selected_color                 = QColor(143, 193, 231);
         theme_colors_[kColorThemeTypeLight].window_background_color            = Qt::white;
         theme_colors_[kColorThemeTypeLight].graphics_scene_background_color    = Qt::white;
+        theme_colors_[kColorThemeTypeLight].line_correlation_highlight_color   = QColor(255, 255, 178, 130);
         theme_colors_[kColorThemeTypeLight].link_button_style_sheet            = kLinkButtonStylesheet;
+
 
         theme_colors_[kColorThemeTypeDark].graphics_scene_text_color          = QColor(240, 240, 240);
         theme_colors_[kColorThemeTypeDark].link_text_color                    = QColor(42, 130, 218);
@@ -589,7 +591,9 @@ namespace QtCommon
         theme_colors_[kColorThemeTypeDark].row_selected_color                 = QColor(40, 80, 160, 140);
         theme_colors_[kColorThemeTypeDark].window_background_color            = QColor(35, 35, 35);
         theme_colors_[kColorThemeTypeDark].graphics_scene_background_color    = QColor(20, 20, 20);
+        theme_colors_[kColorThemeTypeDark].line_correlation_highlight_color   = QColor(100, 100, 50, 130);
         theme_colors_[kColorThemeTypeDark].link_button_style_sheet            = kDarkLinkButtonStylesheet;
+
 
         const QColor white_color      = Qt::white;
         const QColor very_light_color = QColor(240, 240, 240);

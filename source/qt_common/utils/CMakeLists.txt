@@ -5,7 +5,6 @@ set(CMAKE_AUTOMOC ON)
 
 # Add all header and source files within the directory to the library.
 file (GLOB CPP_INC
-    "shared_isa_dictionary.h"
     "color_generator.h"
     "color_palette.h"
     "common_definitions.h"
@@ -20,7 +19,6 @@ file (GLOB CPP_INC
 
 # Add all source files found within this directory.
 file (GLOB CPP_SRC
-    "shared_isa_dictionary.cpp"
     "color_generator.cpp"
     "color_palette.cpp"
     "model_view_mapper.cpp"

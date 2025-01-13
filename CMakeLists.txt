@@ -3,7 +3,7 @@ project(QtCommon)
 
 # Define version information
 set(QTCOMMON_MAJOR_VERSION 4)
-set(QTCOMMON_MINOR_VERSION 1)
+set(QTCOMMON_MINOR_VERSION 2)
 if (NOT QTCOMMON_PATCH_NUMBER)
     set(QTCOMMON_PATCH_NUMBER 0)
 endif ()
