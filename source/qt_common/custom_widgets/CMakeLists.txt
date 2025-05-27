@@ -24,6 +24,7 @@ file (GLOB CPP_INC
     "graphics_scene.h"
     "graphics_view.h"
     "icon_button.h"
+    "include_directories_view.h"
     "list_widget.h"
     "message_overlay.h"
     "message_overlay_container.h"
@@ -31,6 +32,7 @@ file (GLOB CPP_INC
     "navigation_list_widget.h"
     "navigation_list_view.h"
     "navigation_list_model.h"
+    "ordered_list_dialog.h"
     "quick_link_button_widget.h"
     "recent_trace_mini_widget.h"
     "recent_trace_widget.h"
@@ -56,6 +58,7 @@ file (GLOB CPP_INC
     "tab_widget.h"
     "text_search_widget.h"
     "timeline_view.h"
+    "tooltip_widget.h"
 )
 
 # Add any .ui  files
@@ -64,6 +67,7 @@ file (GLOB UI_SRC
     "driver_overrides_notification_config_widget.ui"
     "driver_overrides_tree_widget.ui"
     "message_overlay.ui"
+    "ordered_list_view_dialog.ui"
 )
 
 # Add all source files found within this directory.
@@ -86,6 +90,7 @@ file (GLOB CPP_SRC
     "graphics_scene.cpp"
     "graphics_view.cpp"
     "icon_button.cpp"
+    "include_directories_view.cpp"
     "list_widget.cpp"
     "message_overlay.cpp"
     "message_overlay_container.cpp"
@@ -93,6 +98,7 @@ file (GLOB CPP_SRC
     "navigation_list_widget.cpp"
     "navigation_list_view.cpp"
     "navigation_list_model.cpp"
+    "ordered_list_dialog.cpp"
     "quick_link_button_widget.cpp"
     "recent_trace_mini_widget.cpp"
     "recent_trace_widget.cpp"
@@ -118,6 +124,7 @@ file (GLOB CPP_SRC
     "tree_view.cpp"
     "text_search_widget.cpp"
     "timeline_view.cpp"
+    "tooltip_widget.cpp"
 )
 
 # Pick up the source files that are relevant to the platform

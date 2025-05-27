@@ -86,6 +86,7 @@ TimelineView::~TimelineView()
     delete mouse_indicator_;
     delete selection_box_;
     delete ruler_;
+    delete scene_;
 }
 
 void TimelineView::UpdateSceneBounds()

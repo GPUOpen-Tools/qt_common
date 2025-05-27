@@ -7,10 +7,10 @@
 
 #include "recent_trace_widget.h"
 
+#include <time.h>
+
 #include <QEvent>
 #include <QVBoxLayout>
-
-#include <time.h>
 
 #include "common_definitions.h"
 #include "qt_util.h"
@@ -158,7 +158,11 @@ void RecentTraceWidget::SetRecentFileData(const RecentFileData& file)
 
     // Connect path label clicked() signal to this widgets clicked(QString) signal
     // with the delete button as the parameter
+#if __cplusplus >= 202002L
+    connect(delete_button_, &QPushButton::clicked, [=, this]() { emit clickedDelete(QString(path)); });
+#else
     connect(delete_button_, &QPushButton::clicked, [=]() { emit clickedDelete(QString(path)); });
+#endif
 
     // Connect clicked() signal for "Open file location" button.
     connect(open_file_location_button_, &QPushButton::clicked, this, &RecentTraceWidget::OpenFileLocation);

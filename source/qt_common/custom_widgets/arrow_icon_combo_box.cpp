@@ -906,6 +906,10 @@ void ArrowIconComboBox::paintEvent(QPaintEvent* event)
     painter.setRenderHint(QPainter::Antialiasing);
     painter.save();
 
+    // Draw the background.
+    const QColor& color = palette().color(QPalette::Base);
+    painter.fillRect(rect(), color);
+
     // Set properties for the lines
     QPen pen;
 

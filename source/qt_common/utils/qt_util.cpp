@@ -577,13 +577,12 @@ namespace QtCommon
         theme_colors_[kColorThemeTypeLight].line_correlation_highlight_color   = QColor(255, 255, 178, 130);
         theme_colors_[kColorThemeTypeLight].link_button_style_sheet            = kLinkButtonStylesheet;
 
-
         theme_colors_[kColorThemeTypeDark].graphics_scene_text_color          = QColor(240, 240, 240);
         theme_colors_[kColorThemeTypeDark].link_text_color                    = QColor(42, 130, 218);
         theme_colors_[kColorThemeTypeDark].arrow_icon_border_color            = QColor(240, 240, 240);
         theme_colors_[kColorThemeTypeDark].column_separator_color             = QColor(20, 20, 20);
         theme_colors_[kColorThemeTypeDark].isa_background_row_color           = QColor(50, 50, 50);
-        theme_colors_[kColorThemeTypeDark].isa_search_match_row_color         = QColor(40, 40, 120);
+        theme_colors_[kColorThemeTypeDark].isa_search_match_row_color         = QColor(175, 140, 255);
         theme_colors_[kColorThemeTypeDark].quick_link_button_background_color = QColor(50, 50, 50);
         theme_colors_[kColorThemeTypeDark].ruler_marker_color                 = QColor(230, 230, 230);
         theme_colors_[kColorThemeTypeDark].ruler_edge_color                   = QColor(50, 50, 50);
@@ -593,7 +592,6 @@ namespace QtCommon
         theme_colors_[kColorThemeTypeDark].graphics_scene_background_color    = QColor(20, 20, 20);
         theme_colors_[kColorThemeTypeDark].line_correlation_highlight_color   = QColor(100, 100, 50, 130);
         theme_colors_[kColorThemeTypeDark].link_button_style_sheet            = kDarkLinkButtonStylesheet;
-
 
         const QColor white_color      = Qt::white;
         const QColor very_light_color = QColor(240, 240, 240);

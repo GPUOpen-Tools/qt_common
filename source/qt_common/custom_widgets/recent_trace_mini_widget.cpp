@@ -7,17 +7,18 @@
 
 #include "recent_trace_mini_widget.h"
 
-#include <QVBoxLayout>
+#include <time.h>
+
 #include <QDir>
 #include <QEvent>
-#include <time.h>
+#include <QVBoxLayout>
 
 #include "common_definitions.h"
 
 RecentTraceMiniWidget::RecentTraceMiniWidget(QWidget* parent)
     : QWidget(parent)
 {
-    path_button_        = new ScaledPushButton(this);
+    path_button_ = new ScaledPushButton(this);
 
     path_button_->setCursor(Qt::PointingHandCursor);
     path_button_->SetLinkStyleSheet();
@@ -64,7 +65,11 @@ void RecentTraceMiniWidget::SetFile(const RecentFileData& file)
     path_button_->setToolTip(path);
 
     // Connect path label clicked() signal to this widgets clicked(QString) signal
+#if __cplusplus >= 202002L
+    connect(path_button_, &QPushButton::clicked, [=, this]() { emit clicked(QString(path)); });
+#else
     connect(path_button_, &QPushButton::clicked, [=]() { emit clicked(QString(path)); });
+#endif
 }
 
 QString RecentTraceMiniWidget::GetPath() const
