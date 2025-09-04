@@ -129,8 +129,8 @@ void IncludeDirectoriesView::HandleIncludeFileLocationBrowseButtonClick(bool /* 
 
     while (should_show_find_directory_dialog)
     {
-        QString selected_directory =
-            QFileDialog::getExistingDirectory(this, tr(kStrIncludeDirDialogSelectDirTitle), latest_path.c_str(), QFileDialog::ShowDirsOnly);
+        QString selected_directory = QDir::toNativeSeparators(
+            QFileDialog::getExistingDirectory(this, tr(kStrIncludeDirDialogSelectDirTitle), latest_path.c_str(), QFileDialog::ShowDirsOnly));
 
         // If the user did not select an entry, don't update anything, just exit the loop.
         if (selected_directory.isEmpty())
@@ -202,7 +202,7 @@ void IncludeDirectoriesView::OnListItemChanged(QListWidgetItem* item)
     // Process the newly-entered data.
     if (item != nullptr)
     {
-        QString new_directory = item->text();
+        QString new_directory = QDir::toNativeSeparators(item->text());
 
         bool directory_exists      = QDir(new_directory).exists();
         bool directory_duplicate   = items_list_.contains(new_directory);
@@ -232,16 +232,22 @@ void IncludeDirectoriesView::OnListItemChanged(QListWidgetItem* item)
                 }
 
                 editing_invalid_entry_ = true;
-            }
 
-            // Update local data.
-            if (item_row < items_list_.count())
-            {
-                items_list_[item_row] = new_directory;
+                RemoveItem(item_row);
             }
             else
             {
-                items_list_.append(new_directory);
+                GetItemsListWidget()->item(item_row)->setText(new_directory);
+
+                // Update local data.
+                if (item_row < items_list_.count())
+                {
+                    items_list_[item_row] = new_directory;
+                }
+                else
+                {
+                    items_list_.append(new_directory);
+                }
             }
         }
 

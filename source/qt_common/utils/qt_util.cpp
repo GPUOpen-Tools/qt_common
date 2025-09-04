@@ -366,7 +366,56 @@ namespace QtCommon
         return result;
     }
 
-    QString QtUtils::ClockToTimeUnit(double clk, int unit_type)
+    static constexpr double kClockMultiplier = 1000000000.0;
+
+    // @brief Get precision based on scale.
+    //
+    // As the ruler is zoomed in, more precision will be needed between the graduations.
+    //
+    // @param [in] scale  The time scale. The smaller the scale, the larger the precision needed.
+    //
+    // @return  The precision, as in the number of decimal places needed.
+    static int GetPrecision(double scale)
+    {
+        constexpr int kMinPrecision = 2;
+        constexpr int kMaxPrecision = 6;
+
+        // Some error checking on the input.
+        if (scale < 0.001)
+        {
+            return kMaxPrecision;
+        }
+
+        double precision = std::log10(kClockMultiplier / scale);
+        if (precision < 2.0)
+        {
+            return kMinPrecision;
+        }
+        else if (precision > 6.0)
+        {
+            return kMaxPrecision;
+        }
+        return static_cast<int>(precision);
+    }
+
+    // @brief Get the fractional part of the time passed in.
+    //
+    // The fractional part is any part coming after the decimal point when displaying larger time
+    // values, for example 6,491ms may be displayed as 6.491s, so 491 would be returned.
+    //
+    // @param [in] time   The time, in clock cycles
+    // @param [in] scale  The time scale. The smaller the scale, the larger the precision needed.
+    //
+    // @return  The fractional part of the time.
+    static uint64_t GetFraction(double time, int scale)
+    {
+        double   power      = pow(10, scale);
+        double   time_scale = kClockMultiplier / power;
+        uint64_t fraction   = static_cast<uint64_t>(fmod((time / time_scale), power));
+        return fraction;
+    }
+
+    QString QtUtils::ClockToTimeUnit(double clk, int unit_type, double scale)
     {
         double time = clk;
 
@@ -397,31 +446,34 @@ namespace QtCommon
         case kTimeUnitTypeSecond:
         {
             out.setRealNumberPrecision(0);
-            uint64_t secs = (uint64_t)(time / 1000000000.0);
-            uint64_t ms   = (uint64_t)fmod((time / 10000000.0), 100);
-            out << QString::number(secs).rightJustified(2, '0') << "." << QString::number(ms).rightJustified(2, '0') << "s";
+            uint64_t secs      = static_cast<uint64_t>(time / kClockMultiplier);
+            int      precision = GetPrecision(scale);
+            uint64_t fraction  = GetFraction(time, precision);
+            out << QString::number(secs).rightJustified(2, '0') << "." << QString::number(fraction).rightJustified(precision, '0') << "s";
         }
         break;
 
         case kTimeUnitTypeMinute:
         {
             out.setRealNumberPrecision(0);
-            uint64_t mins = (uint64_t)(time / 60000000000.0);
-            uint64_t secs = (uint64_t)fmod((time / 1000000000.0), 60);
-            uint64_t ms   = (uint64_t)fmod((time / 10000000.0), 100);
-            out << mins << "m " << QString::number(secs).rightJustified(2, '0') << "." << QString::number(ms).rightJustified(2, '0') << "s";
+            uint64_t mins      = static_cast<uint64_t>(time / 60000000000.0);
+            uint64_t secs      = static_cast<uint64_t>(fmod((time / kClockMultiplier), 60));
+            int      precision = GetPrecision(scale);
+            uint64_t fraction  = GetFraction(time, precision);
+            out << mins << "m " << QString::number(secs).rightJustified(2, '0') << "." << QString::number(fraction).rightJustified(precision, '0') << "s";
         }
         break;
 
         case kTimeUnitTypeHour:
         {
             out.setRealNumberPrecision(0);
-            uint64_t hours    = static_cast<uint64_t>(time / (60 * 60 * 1000000000.0));
-            uint64_t mins     = static_cast<uint64_t>(fmod((time / (60 * 1000000000.0)), 60));
-            uint64_t secs     = static_cast<uint64_t>(fmod((time / 1000000000.0), 60));
-            uint64_t fraction = static_cast<uint64_t>(fmod((time / 10000.0), 100000));
+            uint64_t hours     = static_cast<uint64_t>(time / (60 * 60 * kClockMultiplier));
+            uint64_t mins      = static_cast<uint64_t>(fmod((time / (60 * kClockMultiplier)), 60));
+            uint64_t secs      = static_cast<uint64_t>(fmod((time / kClockMultiplier), 60));
+            int      precision = GetPrecision(scale);
+            uint64_t fraction  = GetFraction(time, precision);
             out << hours << ":" << QString::number(mins).rightJustified(2, '0') << ":" << QString::number(secs).rightJustified(2, '0') << "."
-                << QString::number(fraction).leftJustified(5, '0');
+                << QString::number(fraction).rightJustified(precision, '0');
         }
         break;
 

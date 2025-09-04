@@ -31,7 +31,7 @@ void RulerWidget::PaintRulerBackground(QPainter* painter, const QRectF& rect)
     pen.setColor(QtCommon::QtUtils::ColorTheme::Get().GetCurrentThemeColors().ruler_edge_color);
     brush.setColor(QtCommon::QtUtils::ColorTheme::Get().GetCurrentThemeColors().ruler_background_color);
 
-    pen.setCosmetic(true); // Don't scale.
+    pen.setCosmetic(true);  // Don't scale.
 
     painter->setPen(pen);
     painter->setBrush(brush);
@@ -71,7 +71,7 @@ void RulerWidget::PaintRuler(QPainter*     painter,
     auto pen = painter->pen();
 
     pen.setColor(QtCommon::QtUtils::ColorTheme::Get().GetCurrentThemeColors().ruler_marker_color);
-    pen.setCosmetic(true); // Don't scale.
+    pen.setCosmetic(true);  // Don't scale.
 
     painter->setPen(pen);
 
@@ -103,24 +103,27 @@ void RulerWidget::PaintRuler(QPainter*     painter,
     // values of 0, 10, 20, 30 .. may cause the ruler to be too squashed, so maybe having ruler
     // segments of 0, 100, 200 (more spaced out) may be better
     const double lower_limit = kMinimumTickStep;
-    while (tick_step < lower_limit)
+    while (tick_step < lower_limit && tick_step > 0)
     {
         // ie 10, 100, 1000, 10000 etc.
         time_period *= 10;
-        num_sections = (markers_per_section * max_clock_time) / time_period;
-        tick_step    = ruler_length / num_sections;
+        double num_time_labels = max_clock_time / time_period;
+        num_sections           = static_cast<double>(markers_per_section) * num_time_labels;
+
+        tick_step = ruler_length / num_sections;
     }
 
     // Scale the ticks back down in the case where the gap between them is too large. Up to this
     // part, the scaling will be in base 10 but maybe the gap between 10000 and 20000 is too large.
     // In this case, the tick_step is halved so this goes down to 10000, 15000, 20000.
     const double upper_limit = kMaximumTickStep;
-    while (tick_step > upper_limit)
+    while (tick_step > upper_limit && time_period > 0)
     {
         time_period /= 2;
-        //Q_ASSERT(time_period > 0);
-        num_sections = (markers_per_section * max_clock_time) / time_period;
-        tick_step    = ruler_length / num_sections;
+        double num_time_labels = max_clock_time / time_period;
+        num_sections           = static_cast<double>(markers_per_section) * num_time_labels;
+
+        tick_step = ruler_length / num_sections;
     }
 
     uint64_t count       = 0;
@@ -157,7 +160,7 @@ void RulerWidget::PaintRuler(QPainter*     painter,
                     QTransform wt = painter->worldTransform();
                     wt.translate(x_pos, 0);
                     painter->setWorldTransform(wt);
-                    painter->drawText(1, top - (marker_unit_height * 2), QtCommon::QtUtils::ClockToTimeUnit(clock_label, unit_type));
+                    painter->drawText(1, top - (marker_unit_height * 2), QtCommon::QtUtils::ClockToTimeUnit(clock_label, unit_type, scale_increment));
                     wt.translate(-x_pos, 0);
                     painter->setWorldTransform(wt);
                 }

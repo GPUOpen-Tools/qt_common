@@ -89,6 +89,13 @@ protected:
     /// @brief Update tool tips.
     void UpdateToolTips();
 
+    /// @brief Removes item at specified row.
+    /// @param [in] row The row to remove item at.
+    void RemoveItem(int row);
+
+    /// @brief Removes the currently selected item.
+    void RemoveSelectedItem();
+
     /// @brief  Handle to the Vertical PushButtons Layout of the dialog.
     /// @return pointer to the Vertical PushButtons Layout.
     QVBoxLayout* GetVerticalPushButtonsLayout();

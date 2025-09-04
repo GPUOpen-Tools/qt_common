@@ -395,6 +395,9 @@ bool TimelineView::ZoomInClk(qint64 begin_clk, qint64 end_clk)
         end_clk += half_width;
     }
 
+    // Recompute the range in case of clamps
+    selected_clock_range = end_clk - begin_clk;
+
     // limit zoom level based on resolution of the scene / scroll bar
     uint64_t minimum_range = (ruler_config_.max_time * width()) / selected_clock_range;
     if (minimum_range > INT_MAX)
@@ -411,9 +414,6 @@ bool TimelineView::ZoomInClk(qint64 begin_clk, qint64 end_clk)
 
     // Clamp to within range
     ClampClocks(begin_clk, end_clk);
-
-    // Recompute the range in case of clamps
-    selected_clock_range = end_clk - begin_clk;
 
     // Compute a factor to scale the ruler by
     const qint64 visible_clock_range = viewable_end_clock_ - viewable_start_clock_;

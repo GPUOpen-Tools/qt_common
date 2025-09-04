@@ -257,6 +257,44 @@ void OrderedListDialog::HandleMoveUpButtonClick(bool /* checked */)
     UpdateButtons();
 }
 
+void OrderedListDialog::RemoveItem(int row)
+{
+    if (row < ui_->itemsList->count())
+    {
+        QListWidgetItem* item = ui_->itemsList->takeItem(row);
+        delete item;
+
+        // Update buttons.
+        UpdateButtons();
+    }
+
+    // If there is also a corresponding data entry, remove that too.
+    if (row < items_list_.count())
+    {
+        items_list_.removeAt(row);
+    }
+}
+
+void OrderedListDialog::RemoveSelectedItem()
+{
+    // Remove the selected item from the list widget.
+    int current_index = ui_->itemsList->currentRow();
+
+    // Remove the selected item from the string list.
+    if (current_index < ui_->itemsList->count())
+    {
+        RemoveItem(current_index);
+    }
+
+    // If this was the last item in the list widget,
+    // add a blank place holder.
+    if (ui_->itemsList->count() == 0)
+    {
+        // Insert an empty item to the list widget and highlight it.
+        InsertBlankItem();
+    }
+}
+
 void OrderedListDialog::HandleDeleteButtonClick(bool /* checked */)
 {
     // Display a confirmation message box.
@@ -264,26 +302,7 @@ void OrderedListDialog::HandleDeleteButtonClick(bool /* checked */)
 
     if (is_confirmation)
     {
-        // Remove the selected item from the list widget.
-        int              current_index = ui_->itemsList->currentRow();
-        QListWidgetItem* current_item  = ui_->itemsList->takeItem(current_index);
-
-        // Remove the selected item from the string list.
-        if (current_item != nullptr && current_index < items_list_.count())
-        {
-            items_list_.removeAt(current_index);
-
-            // Update buttons.
-            UpdateButtons();
-        }
-
-        // If this was the last item in the list widget,
-        // add a blank place holder.
-        if (ui_->itemsList->count() == 0)
-        {
-            // Insert an empty item to the list widget and highlight it.
-            InsertBlankItem();
-        }
+        RemoveSelectedItem();
     }
 }
 
@@ -470,7 +489,10 @@ QListWidget* OrderedListDialog::GetItemsListWidget()
 bool OrderedListDialog::ShowConfirmationMessageBox()
 {
     QMessageBox confirmation_dialog(this);
-    confirmation_dialog.setWindowIcon(window_icon_);
+    if (!window_icon_.isNull())
+    {
+        confirmation_dialog.setWindowIcon(window_icon_);
+    }
     confirmation_dialog.setWindowTitle(kStrIncludeDirDialogDeleteBoxTitle);
     confirmation_dialog.setText(kStrIncludeDirDialogDeleteBoxMessage);
     confirmation_dialog.setIcon(QMessageBox::Question);

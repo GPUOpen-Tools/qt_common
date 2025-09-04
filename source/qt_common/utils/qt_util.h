@@ -98,8 +98,9 @@ namespace QtCommon
         /// Utility function to convert a clock to a time unit and output as string.
         /// \param clk input clock to convert
         /// \param unit_type unit type (clk, ns, us, ms)
+        /// \param scale The time value scale. The smaller the scale, the larger the precision needed.
         /// \return a string representing a clock value
-        QString ClockToTimeUnit(double clk, int unit_type);
+        QString ClockToTimeUnit(double clk, int unit_type, double scale = 0.0);
 
         /// Utility function to convert a uint64 value to capitalized and aligned str
         /// \param value 64-bit value
