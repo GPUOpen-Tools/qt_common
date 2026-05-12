@@ -1,5 +1,5 @@
 //=============================================================================
-/// Copyright (c) 2016-2025 Advanced Micro Devices, Inc. All rights reserved.
+/// Copyright (c) 2016-2026 Advanced Micro Devices, Inc. All rights reserved.
 /// \author AMD Developer Tools Team
 /// \file
 /// \brief  ModelViewMapper class implementation.
@@ -9,15 +9,16 @@
 
 #include <cassert>
 
-#include <QStandardItemModel>
 #include <QDataWidgetMapper>
+#include <QStandardItemModel>
 #include <QWidget>
 
 /// A widget property name string. Used to retrieve the mapped widget Id if given a registered QWidget.
 static const char* kObjectIdProperty = "WidgetObjectId";
 
-ModelViewMapper::ModelViewMapper(uint32_t model_count)
-    : control_model_array_(nullptr)
+ModelViewMapper::ModelViewMapper(uint32_t model_count, QObject* parent)
+    : QObject(parent)
+    , control_model_array_(nullptr)
     , control_mapper_array_(nullptr)
     , model_count_(model_count)
 {
@@ -28,7 +29,7 @@ ModelViewMapper::ModelViewMapper(uint32_t model_count)
 
         for (uint32_t loop = 0; loop < model_count_; loop++)
         {
-            control_model_array_[loop] = nullptr;
+            control_model_array_[loop]  = nullptr;
             control_mapper_array_[loop] = nullptr;
         }
     }
@@ -95,7 +96,7 @@ int ModelViewMapper::GetMappedWidgetId(const QWidget* widget) const
         Q_ASSERT(object_id.isValid());
         if (!object_id.isValid())
         {
-            bool is_ok   = false;
+            bool is_ok  = false;
             int  tmpInt = object_id.toInt(&is_ok);
             Q_ASSERT(is_ok);
             if (is_ok)
@@ -137,7 +138,7 @@ void ModelViewMapper::InitializeModel(QWidget* widget, uint32_t id, const QStrin
         widget->setProperty(kObjectIdProperty, id);
 
         control_model_array_[id] = new QStandardItemModel(1, 1);
-        QString default_value = "{0}";
+        QString default_value    = "{0}";
         if (property_name.compare("styleSheet") == 0)
         {
             default_value = "";

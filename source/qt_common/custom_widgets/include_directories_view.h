@@ -1,5 +1,5 @@
 //=============================================================================
-/// Copyright (c) 2025 Advanced Micro Devices, Inc. All rights reserved.
+/// Copyright (c) 2025-2026 Advanced Micro Devices, Inc. All rights reserved.
 /// @author AMD Developer Tools Team
 /// @file
 /// @brief  Header for our include directories view dialog

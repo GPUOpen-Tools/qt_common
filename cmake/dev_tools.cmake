@@ -50,7 +50,12 @@ function(devtools_target_options name)
 
                 # Disable warnings about deprecated features
                 /wd4996
+
+                # Enable control flow guard
+                /guard:cf
                 )
+
+        target_link_options(${name} PRIVATE /GUARD:CF)
     else ()
 
         message(FATAL_ERROR "Compiler ${CMAKE_CXX_COMPILER_ID} is not supported!")

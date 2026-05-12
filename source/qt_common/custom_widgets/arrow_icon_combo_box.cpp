@@ -1,5 +1,5 @@
 //=============================================================================
-/// Copyright (c) 2018-2025 Advanced Micro Devices, Inc. All rights reserved.
+/// Copyright (c) 2018-2026 Advanced Micro Devices, Inc. All rights reserved.
 /// \author AMD Developer Tools Team
 /// \file
 /// \brief  Implementation of our down arrow combobox
@@ -784,7 +784,17 @@ QSize ArrowIconComboBox::sizeHint() const
     if (retain_default_text_)
     {
         // Width is arrow size + offset + current text size + offset.
-        size_hint.setWidth(size_ + total_scaled_text_offsets + fontMetrics().horizontalAdvance(text()));
+        //
+        // Only add text offsets if there is text to display.
+        const int text_width = fontMetrics().horizontalAdvance(text());
+        if (text_width > 0)
+        {
+            size_hint.setWidth(size_ + total_scaled_text_offsets + text_width);
+        }
+        else
+        {
+            size_hint.setWidth(size_);
+        }
     }
     else if (item_list_ != nullptr)
     {

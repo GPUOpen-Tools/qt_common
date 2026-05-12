@@ -1,5 +1,5 @@
 //=============================================================================
-/// Copyright (c) 2016-2025 Advanced Micro Devices, Inc. All rights reserved.
+/// Copyright (c) 2016-2026 Advanced Micro Devices, Inc. All rights reserved.
 /// \author AMD Developer Tools Team
 /// \file
 /// \brief  ModelViewMapper class declaration.
@@ -8,8 +8,8 @@
 #ifndef QTCOMMON_UTILS_MODEL_VIEW_MAPPER_H_
 #define QTCOMMON_UTILS_MODEL_VIEW_MAPPER_H_
 
-#include <memory>
 #include <QObject>
+#include <memory>
 
 class QStandardItemModel;
 class QDataWidgetMapper;
@@ -19,10 +19,11 @@ class ModelViewMapper : public QObject
     Q_OBJECT
 
 public:
-    /// Explicit constructor
-    /// \param model_count the number of models required. Each model is referenced
-    ///        by an ID
-    explicit ModelViewMapper(uint32_t model_count);
+    /// Explicit constructor.
+    ///
+    /// @param [in] model_count The number of models required. Each model is referenced by an ID
+    /// @param [in] parent      The parent QObject.
+    explicit ModelViewMapper(uint32_t model_count, QObject* parent = nullptr);
 
     /// Destructor
     virtual ~ModelViewMapper();
